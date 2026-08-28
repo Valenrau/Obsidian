@@ -48,3 +48,10 @@ Refuerza atributos de calidad del desarrollo de software:
 - Reusabilidad: dada la modularidad misma, una vez ya implementada la interfaz, es facil la re-utilizacion y evitar repetir código
 - Extensibilidad: es posible seguir agregando funcionalidad, extendiendo interfaces y creando nuevos objetos que sepan operar con las interfaces actuales
 - Mantenibilidad: gracias a la modularidad y reusabilidad facilita la mantenibilidad. Mas objetos, menos complejos. Implementacion y testing de cada objeto por separado
+
+> Todo lo anterior se sostiene por los cuatro pilares de la programacion orientada a objetos
+
+--- 
+
+# Abstraccion
+
