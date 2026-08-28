@@ -20,4 +20,31 @@ Un **objeto** es una entidad en el modelo de computacion que busca representar u
 
 La forma en que un objeto realizara una operacion disparada por un mensaje recibido, se describe en un **metodo**. La ejecucion de estas operaciones puede estar condicionada por un **estado** interno del objeto. Dicho estado se ve reflejado en **atributos** del objeto
 
-# Mensajes
+## Mensajes
+
+Es una forma de invocar comportamiento en un software donde 2 actores se comunican mediante mensajes. En general en POO el pasaje de mensajes es sincronico y local (invocar una funcion en un programa).
+
+Esta es la unica manera de interactuar con un objeto, por lo que un objeto no depende de como otro realiza X accion, sino de lo que devuelve (Que hace y no como).
+El proceso de establecer la asociacion de un mensaje recibido con el metodo que debe ejecutarse se lo llama **method dispatch**
+
+Los atributos del estado interno de los objetos, por defecto son **privados**
+
+## Variantes de la POO
+
+La creación de objetos e indican cómo será implementada la entidad se hace con:
+
+- Clasificacion:
+	- Existen “moldes” abstractos de entidades del dominio, denominados clases, que definen el comportamiento y forma de un conjunto de objetos.
+	- Cada objeto se crea -o bien, se instancia- a partir de uno de estos moldes. Todo objeto es una instancia
+- Prototipado:
+	- Se construyen instancias concretas de un conjunto de objetos, llamadas **prototipos**.
+	- Los objetos se crean a partir de clonar estos prototipos y luego se los modifica.
+
+## Porque POO
+
+Refuerza atributos de calidad del desarrollo de software:
+
+- Modularidad: los lenguajes orientados a objetos incentivan la modularizacion, haciendo que la implementacion de cada objeto quede en su propio módulo
+- Reusabilidad: dada la modularidad misma, una vez ya implementada la interfaz, es facil la re-utilizacion y evitar repetir código
+- Extensibilidad: es posible seguir agregando funcionalidad, extendiendo interfaces y creando nuevos objetos que sepan operar con las interfaces actuales
+- Mantenibilidad: gracias a la modularidad y reusabilidad facilita la mantenibilidad. Mas objetos, menos complejos. Implementacion y testing de cada objeto por separado
