@@ -55,3 +55,15 @@ Refuerza atributos de calidad del desarrollo de software:
 
 # Abstraccion
 
+La abstracción consiste en representar un objeto mediante las características y comportamientos relevantes para el problema que estamos resolviendo, ocultando o ignorando los detalles que no son necesarios. Escondiendo detalles de **como se hace algo**, mientras que el usuario solo sabe su funcionalidad (**qué hace**)
+
+```
+class Auto:
+    def acelerar(self):
+        pass
+
+    def frenar(self):
+        pass
+```
+
+Cuando usamos el objeto, nos interesa saber que un auto puede acelerar y frenar, no conocer detalles de *como* lo hace
