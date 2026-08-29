@@ -17,7 +17,7 @@ Simplifica el complejo proceso de diseñar software, actuando como lenguaje inte
 
 ### Diagramas Comunes
 
-- **Diagramas de clase**:
+- **Diagramas de [[Programación Orientada a Objetos#Objeto|clase]]**:
 - **Diagramas de secuencia**:
 
 # Diagramas de Clase
@@ -54,7 +54,7 @@ Relaciones:
 - Se representan con flechas de distintas caracteristicas
 - Los significados son:
 	- **Asociacion**: representa una relacion de conocimiento o uso entre un objeto y otro (User -> Utility)
-	- **Herencia**: una clase hereda de a quien apunta
+	- **[[Programación Orientada a Objetos#Herencia|Herencia]]**: una clase hereda de a quien apunta
 	- **Implementación**: una entidad implementa una interfaz a la que apunta
 	- **Agregación**: se compone de objetos con otros ciclos de vida
 	- **Composición**: se compone de objetos con mismo ciclo de vida
@@ -69,8 +69,6 @@ Facultad (1)------------(1...\*) Aula, se lee como que aula puede tener una facu
 - \* (o 0..\*): Cero o muchos
 - 1..\*: Uno o muchos
 
-
- 
 ## Relaciones entre Objetos:
 
 ### Asociación
