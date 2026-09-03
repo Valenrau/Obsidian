@@ -1,5 +1,4 @@
- 
-## Qué es?
+# Qué es?
 
 Es un paradigma de programacion, que se basa en organizar partes del codigo en objetos
 
