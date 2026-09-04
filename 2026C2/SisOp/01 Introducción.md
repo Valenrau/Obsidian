@@ -95,7 +95,7 @@ La asombrosa longevidad de Unix se explica por un conjunto de principios de dise
 2.  **Interoperabilidad por Texto Plano:** Los programas deben poder conectarse de forma transparente [52]. Para lograr esto, la salida de cualquier programa debe diseñarse de modo que pueda ser utilizada directamente como la entrada de otro [52]. La ausencia de formatos propietarios, binarios complejos o encabezados rígidos (privilegiando el intercambio de flujos de bytes limpios) permite combinar comandos simples en potentes flujos de trabajo (*pipelines*) [52, 53].
 3.  **Modularidad Dinámica:** Promover la construcción rápida de herramientas modulares y temporales en lugar de monolitos pesados y difíciles de depurar [52].
 
-### El Kernel: Línea de Demarcación de Privilegios
+### El [[02 Kernel|Kernel]]: Línea de Demarcación de Privilegios
 
 La división fundamental de seguridad y operación en una arquitectura Unix-like se compone de dos anillos de privilegio rigurosamente separados por el hardware del procesador [112]:
 
@@ -136,7 +136,7 @@ La división fundamental de seguridad y operación en una arquitectura Unix-like
 1.  **User-land (Espacio de Usuario):** Donde se ejecutan las aplicaciones de usuario (navegadores, editores de texto, procesos de servidor) y las bibliotecas estándar (como `unistd.h` o la biblioteca estándar de C) [54, 112]. Los programas en user-land se ejecutan en un modo de CPU no privilegiado. Tienen estrictamente prohibido acceder directamente a la memoria física de otros procesos, escribir directamente en los registros del procesador, o enviar comandos físicos al hardware de disco [31, 34].
 2.  **Kernel-land (Espacio del Núcleo):** El Kernel o núcleo es la barrera absoluta entre las aplicaciones y el hardware físico [112]. Es un software altamente privilegiado que corre en el modo más protegido del procesador (Anillo 0) y posee control absoluto del hardware [32, 54]. Ningún programa ordinario puede saltarse el kernel para acceder a un periférico; todo paso requiere obligatoriamente solicitar formalmente un servicio al kernel [31, 32].
 
-Los servicios expuestos por el kernel se denominan **Llamadas al Sistema (*System Calls* o *Syscalls*)** [113]. El pasaje del Espacio de Usuario al Espacio del Núcleo se realiza mediante instrucciones de hardware especiales de la CPU (como interrupciones de software o instrucciones específicas como `syscall` o `sysenter`), las cuales suspenden la ejecución segura del proceso en user-land, elevan el nivel de privilegios del CPU, y ejecutan una rutina específica y segura dentro del kernel [68, 70].
+Los servicios expuestos por el kernel se denominan **Llamadas al Sistema ([[System calls, procesos y su relación con el kernel|System Calls]] o *Syscalls*)** [113]. El pasaje del Espacio de Usuario al Espacio del Núcleo se realiza mediante instrucciones de hardware especiales de la CPU (como interrupciones de software o instrucciones específicas como `syscall` o `sysenter`), las cuales suspenden la ejecución segura del proceso en user-land, elevan el nivel de privilegios del CPU, y ejecutan una rutina específica y segura dentro del kernel [68, 70].
 
 ---
 
