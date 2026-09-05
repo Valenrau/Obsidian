@@ -1,8 +1,4 @@
-# Paradigma de Diseño de Algoritmos: Backtracking y Exploración del Espacio de Soluciones
-
-Este documento desarrolla los fundamentos teóricos, el análisis matemático de complejidad y las pautas rigurosas de diseño del paradigma de **Backtracking** (Vuelta Atrás). Se abordan las técnicas de modelado de espacios de búsqueda, la mecánica analítica de la poda de ramas ineficientes y se detallan casos de estudio de referencia académica. Cada sección cuenta con un análisis formal, una metáfora conceptual para asentar la intuición, y una implementación estructurada en Python con su correspondiente análisis de complejidad temporal y espacial.
-
----
+# Backtracking y Exploración del Espacio de Soluciones
 
 ## 1. Fundamentos del Paradigma: Fuerza Bruta frente a Backtracking
 
