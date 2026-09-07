@@ -6,11 +6,11 @@ Una **system call** (llamada al sistema) es la única puerta de entrada que tien
 
 ```
  MODO USUARIO                    MODO KERNEL
-┌───────────────┐   syscall    ┌───────────────────┐
-│  tu programa   │ ───────────▶ │  kernel del SO     │
+┌────────────────┐   syscall    ┌─────────────────────┐
+│  tu programa   │ ───────────▶ │  kernel del SO      │
 │  (read, fork,  │              │  (maneja hardware,  │
 │   write...)    │ ◀─────────── │  procesos, memoria) │
-└───────────────┘   resultado  └───────────────────┘
+└────────────────┘   resultado  └─────────────────────┘
 ```
 
 **Cómo funciona por dentro (simplificado):**
@@ -42,13 +42,13 @@ Por convención, todo proceso arranca con 3 fd ya abiertos:
 
 ```
 Proceso                     Kernel
-┌─────────────────┐        ┌───────────────────────────┐
+┌───────────────────┐        ┌─────────────────────────────┐
 │ tabla de fd:      │        │ tabla de archivos abiertos  │
 │  0 → stdin  ──────┼───────▶│ [terminal]                  │
 │  1 → stdout ──────┼───────▶│ [terminal]                  │
 │  2 → stderr ──────┼───────▶│ [terminal]                  │
 │  3 → archivo.txt ─┼───────▶│ [inode archivo.txt, offset] │
-└─────────────────┘        └───────────────────────────┘
+└───────────────────┘        └─────────────────────────────┘
 ```
 
 Ejemplo en C:
@@ -154,7 +154,7 @@ Cuando un proceso hijo termina, no desaparece del todo hasta que el padre "recog
 ```
 PADRE                          HIJO
   │                              │
-  │──fork()───────────────────▶ │  (hijo empieza a correr)
+  │──fork()───────────────────▶  │ (hijo empieza a correr)
   │                              │
   │  wait()  (padre se bloquea)  │  ... hace su trabajo ...
   │      │                       │
@@ -267,11 +267,11 @@ Cerrar el extremo que no se usa es importante: si no, el kernel puede pensar que
 
 ```
 ANTES de exec()                    DESPUÉS de exec()
-┌─────────────────┐               ┌─────────────────┐
-│ proceso (PID 100) │               │ proceso (PID 100) │
+┌────────────────────┐              ┌────────────────────┐
+│ proceso (PID 100)  │              │ proceso (PID 100)  │
 │ código: programaA  │  execve()    │ código: programaB  │
 │ datos: variables A │ ───────────▶ │ datos: variables B │
-└─────────────────┘               └─────────────────┘
+└────────────────────┘              └────────────────────┘
    (mismo PID, contenido totalmente distinto)
 ```
 
@@ -315,13 +315,13 @@ Así es como una terminal ejecuta comandos: crea un hijo con `fork()`, el hijo s
                        fork()
              ┌────────────┴────────────┐
              │                         │
-         PADRE                     HIJO
-     wait()  (se bloquea)     execve("/bin/ls", ...)
-             │                (el hijo AHORA es "ls")
-             │                    │
-             │                 termina "ls"
-             │                    │
-     wait() retorna ◀─────────────┘
+         PADRE                        HIJO
+     wait()  (se bloquea)       execve("/bin/ls", ...)
+             │                  (el hijo AHORA es "ls")
+             │                         │
+             │                     termina "ls"
+             │                         │
+     wait() retorna ◀──────────────────┘
              │
         sigue la shell
 ```
