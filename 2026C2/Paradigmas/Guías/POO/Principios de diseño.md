@@ -27,10 +27,10 @@ class Animal {
 	public void hacerSonido();
 }
 class Jaula {
-	private Animal habitante;
+	private Animal habitante; //cada objeto jaula va a tener una variable llamada habitante que puede guardar una referencia a un objeto de tipo animal
 	
-	public Jaula(Animal habitante) {
-		this.habitante = habitante;
+	public Jaula(Animal habitante) { //Constructor
+		this.habitante = habitante; //Guarda el habitante pasado por param.
 	}
 	public void hacerSonidoDelHabitante() {
 		habitante.hacerSonido()
@@ -69,7 +69,8 @@ public class Cliente {
 
         double montoSolicitado = 500;
         if (!cuenta.tieneSaldoSuficiente(montoSolicitado)) {
-            throws MontoInsuficienteException("No se puede retirar. Fondos insuficientes.");
+            throws MontoInsuficienteException("No se puede retirar. Fondos 
+            insuficientes.");
         }
 
 
