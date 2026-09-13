@@ -17,8 +17,36 @@ class Zoológico {
 }
 ```
 
-RTA:
+	RTA: Se violan los principios de TDA y de PoLK, ya que inicialmente pregunta 
+	por el estado de hacer la accion, luego con PoLK se da que Zoologico no 
+	estaba hablando unicamente con su atributo, sino que ademas habla con los 
+	atributos de Jaula
 
+```
+class Animal {
+	public void hacerSonido();
+}
+class Jaula {
+	private Animal habitante;
+	
+	public Jaula(Animal habitante) {
+		this.habitante = habitante;
+	}
+	public void hacerSonidoDelHabitante() {
+		habitante.hacerSonido()
+	}
+}
+class Zoologico {
+	private Jaula jaula;
+	
+	public Zoologico(Jaula jaula) {
+		this.jaula = jaula;
+	}
+	public void hacerSonidoDelAnimalEnjaulado() {
+		jaula.hacerSonidoDelHabitante();
+	}
+}
+```
 
 
 
