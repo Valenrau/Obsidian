@@ -168,11 +168,46 @@ public class GeneradorDeReportes {
 }
 ```
 
+	RTA: En este caso se puede ver como se viola principalmete el principio OCP
+	ya que se esta haciendo un generador de reportes para cada formato, por lo 
+	que podria ser que el generador de reportes reciba un formato y que se pueda 
+	generar el deporte independientemente del formato. Actualmente si se 
+	agregara un nuevo formato habria que agregar manualmente cada funcion cuando 
+	podria resolverse de otra manera dentro de una clase "Formatos" y que cada 
+	formato se encargue de hacer sus cosas. Tambien se rompe un poco DRY 
+
+```
+public interface Formato {
+	void agregarMetadata(Metadata metadata);
+	void guardar();
+}
+public class GeneradorDeReportes {
+	public void generadorDeReportes(String texto, Metadata metadata, Formato 
+	formato) {
+		formato.agregarMetadata(metadata);
+		formato.guardar();
+	}
+}
+```
+
 5.
 
 ```
 public class Juego {
     public void saludar() {
+        System.out.println("Iniciando Juego...");
+        // logica de juego
+    }
+}
+```
+
+	RTA: El principio que no se cumple aca es el de PoLA, ya que se espera que
+	haga algo y despues hace otra cosa que no tiene nada que ver. 
+	El comportamiento debe ser coherente e intuitivo
+
+```
+public class Juego {
+    public void iniciarJuego() {
         System.out.println("Iniciando Juego...");
         // logica de juego
     }
