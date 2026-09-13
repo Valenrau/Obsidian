@@ -79,7 +79,40 @@ public class Cliente {
 }
 ```
 
-	RTA
+	RTA: Inicialmente el primer Principio violado seria el de TDA, ya que el 
+	cliente pregunta para poder resolver hago que tendria que resolver 
+	internamente la Cuenta. Ademas PoLC tambien se ve infringido ya que
+	la clase expone metodos de más como si tiene suficiente saldo, siendo
+	que ese deberia ser privado. Finalmente tambien rompe el principio de 
+	PoLA, ya que uno esperaria que si quiere retirar mas de lo que tiene, 
+	deberia romper/tirar excepcion por algun lado, no ejecutarse igual
+
+```
+class CuentaBancaria {
+    private double saldo;
+
+    public CuentaBancaria(double saldoInicial) { this.saldo = saldoInicial; }
+
+    private boolean tieneSaldoSuficiente(double monto) { return monto <= saldo; }
+
+    public void retirar(double monto) { saldo -= monto; }
+}
+
+public class Cliente {
+    public static void main(String[] args) {
+        CuentaBancaria cuenta = new CuentaBancaria(1000);
+
+        double montoSolicitado = 500;
+        if (!cuenta.tieneSaldoSuficiente(montoSolicitado)) {
+            throws MontoInsuficienteException("No se puede retirar. Fondos 
+            insuficientes.");
+        }
+
+
+        cuenta.retirar(montoSolicitado);
+    }
+}
+```
 
 3.
 
