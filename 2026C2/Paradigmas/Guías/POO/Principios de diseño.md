@@ -95,7 +95,13 @@ class CuentaBancaria {
 
     private boolean tieneSaldoSuficiente(double monto) { return monto <= saldo; }
 
-    public void retirar(double monto) { saldo -= monto; }
+    public boolean retirar(double monto) { 
+	    if (!tieneSaldoSuficient(monto)) {
+		    return false;
+	    }
+	    saldo -= monto; 
+		return true;
+	}
 }
 
 public class Cliente {
@@ -103,12 +109,6 @@ public class Cliente {
         CuentaBancaria cuenta = new CuentaBancaria(1000);
 
         double montoSolicitado = 500;
-        if (!cuenta.tieneSaldoSuficiente(montoSolicitado)) {
-            throws MontoInsuficienteException("No se puede retirar. Fondos 
-            insuficientes.");
-        }
-
-
         cuenta.retirar(montoSolicitado);
     }
 }
@@ -123,7 +123,8 @@ public class Deposito {
 
         int requerido= 50;
         if (!inventario.hayStock(requerido)) {
-            throws StockInsuficienteException("No se puede retirar. Stock insuficiente.");
+            throws StockInsuficienteException("No se puede retirar. Stock 
+            insuficiente.");
         }
         cuenta.retirar(requerido);
     }
