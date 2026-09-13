@@ -121,7 +121,7 @@ no debería, inesperadamente, también guardar la lista en una base de datos.
 
 Un objeto debería conocer lo menos posible sobre la estructura interna de otros objetos.
 
-Según la presentación, un método debería invocar métodos solamente de:
+Un método debería invocar métodos solamente de:
 
 - su propia clase;
     
