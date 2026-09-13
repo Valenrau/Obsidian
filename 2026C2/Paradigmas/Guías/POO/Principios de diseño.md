@@ -141,6 +141,9 @@ class Inventario {
 }
 ```
 
+	RTA: Mismo caso que con el de arriba, se explica que rompe los principios de 
+	TDA, PoLC y PoLA
+
 4.
 
 ```
