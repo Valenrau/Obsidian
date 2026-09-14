@@ -389,3 +389,25 @@ public class EstacionamientoGratis implements Estacionamiento {
     }
 }
 ```
+
+	RTA: no cumple con ISP, ya que no tiene sentido que se usen todos esos 
+	metodos para interfaz, muchos podrian ir en otras, con esto tambien se cumple
+	SRP, ya que hay mucha responsabilidad en Estacionamiento y claramente se 
+	puede delegar. Finalmente tampoco se cumple PoLA, ya que no tiene sentido 
+	que como era gratis te tire una excepcion, eso deberia estar resuelto de 
+	otra manera. 
+
+```
+// Interfaz base: solo gestión de vehículos
+public interface Estacionamiento {
+    void aparcarCoche();
+    void sacarCoche();
+    int getCapacidad();
+}
+
+// Interfaz segregada: solo para estacionamientos comerciales
+public interface EstacionamientoTarifado extends Estacionamiento {
+    double calcularTarifa(Coche coche);
+    void hacerPago(Coche coche);
+}
+```
