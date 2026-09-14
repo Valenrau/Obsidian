@@ -234,6 +234,17 @@ public class Usuario {
 }
 ```
 
+	RTA: No se cumple con el principip de SRP, ya que la clase Usuario esta 
+	teniendo responsabilidades de más que no van al caso, los otros metodos
+	deberian ser clases sueltas que ejecuten esas funciones
+
+```
+public class Usuario {
+	private String nombre;
+}
+c
+```
+
 7.
 
 ```
