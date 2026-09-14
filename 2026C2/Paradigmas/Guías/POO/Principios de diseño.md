@@ -274,6 +274,34 @@ public class Calculadora {
 }
 ```
 
+	RTA: No se cumple el principio OCP, ya que no esta abierto a extensin, para 
+	cada operacion hay un if en vez de una clase por cada operacion, siendo que 
+	si hay operaciones nuevas tenga que modificar la clase calculadora
+
+```
+public interface Operacion {
+    int calcular(int a, int b);
+}
+public class Suma implements Operacion {
+    @Override
+    public int calcular(int a, int b) {
+        return a + b;
+    }
+}
+
+public class Resta implements Operacion {
+    @Override
+    public int calcular(int a, int b) {
+        return a - b;
+    }
+}
+public class Calculadora {
+    public int operar(Operacion operacion, int a, int b) {
+        return operacion.calcular(a, b);
+    }
+}
+```
+
 8.
 
 ```
