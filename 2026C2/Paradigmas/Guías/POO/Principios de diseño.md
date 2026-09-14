@@ -242,7 +242,21 @@ public class Usuario {
 public class Usuario {
 	private String nombre;
 }
-c
+class guardarEnBaseDeDatos {
+	public void guardar() {
+		System.out.println("Guardando usuario...");
+	}
+}
+class enviarCorreoBienvenida {
+	public void enviar() {
+		System.out.println("Enviando correo de bienvenida...");
+	}
+}
+class validarEmail() {
+	public void validar() {
+		System.out.println("Validando email...");
+	}
+}
 ```
 
 7.
