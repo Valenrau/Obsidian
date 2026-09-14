@@ -327,7 +327,33 @@ public class Pajaro extends Animal {
 }
 ```
 
-	RTA: 
+	RTA: Se rommpe el principio LSP, ya que no cumple con que si un programa
+	funciona utilizando una clase, debe poder utilizar cualquier subclase
+	sin que el comportamiento afecte. En este caso lanza una especie de
+	promesa "vacia" de que cada subclase de Animal va a poder volar 
+	cuando realmente no es asi.
+
+```
+// Abstracción base para lo común a todo animal (si hace falta)
+public abstract class Animal {
+    // Atributos y comportamientos generales a todos los animales
+}
+
+// Interfaces específicas (capacidades segregadas)
+public interface Caminante {
+    void caminar();
+}
+
+public interface Volador {
+    void volar();
+}
+
+public interface Nadador {
+    void nadar();
+}
+public class Perro extends Animal implements Caminante, Nadador {
+}
+```
 
 9.
 
