@@ -1,1122 +1,904 @@
-## ¿Qué son los principios de diseño?
+# Principios de Diseño — ejemplos mejorados
 
-Son reglas y recomendaciones que ayudan a tomar decisiones durante el desarrollo de software para lograr código más:
+## Cómo leer estos principios
 
-- limpio;
-    
-- comprensible;
-    
-- mantenible.
-    
+Los principios de diseño no son reglas absolutas: son criterios para tomar decisiones de diseño. El objetivo es que el código sea más comprensible, mantenible y fácil de modificar.
 
-No son reglas absolutas: funcionan como una **guía** y deben evaluarse según el contexto.---
+Los ejemplos de abajo están pensados para **distinguir principios que pueden parecerse entre sí**. En cada caso se muestra:
 
-# Principios de diseño
+- el problema;
+- una versión problemática;
+- una versión mejorada;
+- qué principio se está aplicando;
+- cómo diferenciarlo de otros principios.
 
-## TDA — Tell, Don't Ask
+> **Importante:** este resumen se centra en TDA, PoLC, PoLA, PoLK, EDP, KOP y SoC. No incluye KISS, YAGNI ni DRY.
 
-**Decí, no preguntes.**
+---
 
-En programación orientada a objetos, se recomienda **pedirle directamente a un objeto que realice una acción**, en lugar de consultar su estado para luego decidir externamente qué hacer.
+# 1. TDA — Tell, Don't Ask
 
-### Idea
+## Idea
 
-En vez de:
+**No le preguntes a un objeto por sus datos para tomar vos una decisión que conceptualmente le corresponde al objeto. Decile directamente qué querés que haga.**
 
+La diferencia fundamental es:
+
+> **Ask:** "Dame tus datos y yo decido qué hacer."  
+> **Tell:** "Hacé esto vos, porque vos conocés tu propio estado."
+
+## Ejemplo
+
+Tenemos una `Cuenta`.
+
+### Problema
+
+```java
+class Banco {
+    public void retirar(Cuenta cuenta, double monto) {
+        if (cuenta.getSaldo() >= monto) {
+            cuenta.setSaldo(cuenta.getSaldo() - monto);
+        }
+    }
+}
 ```
+
+`Banco` está preguntándole a `Cuenta` cuál es su saldo y después está manipulando su estado.
+
+### Mejor
+
+```java
+class Cuenta {
+    private double saldo;
+
+    public void retirar(double monto) {
+        if (saldo >= monto) {
+            saldo -= monto;
+        }
+    }
+}
+```
+
+Y desde afuera:
+
+```java
+cuenta.retirar(500);
+```
+
+Ahora `Cuenta` decide cómo se realiza un retiro.
+
+## ¿Qué ganó el diseño?
+
+La lógica relacionada con el saldo está donde corresponde: dentro de `Cuenta`.
+
+Si mañana retirar dinero requiere, por ejemplo:
+
+- verificar que el monto sea positivo;
+- registrar la operación;
+- cobrar una comisión;
+- verificar un límite;
+
+el código que usa `Cuenta` no necesita conocer esos detalles.
+
+## Cómo diferenciarlo de PoLK
+
+Ambos pueden aparecer juntos, pero miran problemas distintos:
+
+- **TDA:** "¿Por qué estoy preguntando por el estado para decidir qué hacer?"
+- **PoLK:** "¿Por qué estoy conociendo la estructura interna de tantos objetos?"
+
+Por ejemplo:
+
+```java
+pedido.getCliente().getCuenta().getSaldo()
+```
+
+es claramente un problema de **PoLK** porque estás navegando por varios objetos.
+
+Si después hacés:
+
+```java
 if (cuenta.getSaldo() >= monto) {
     cuenta.setSaldo(cuenta.getSaldo() - monto);
 }
 ```
 
-preferir:
-
-```
-cuenta.retirar(monto);
-```
-
-### ¿Por qué?
-
-Porque la lógica relacionada con el estado de `Cuenta` queda dentro de `Cuenta`.
-
-**Idea clave:** interactuar con los objetos mediante su **comportamiento**, no manipulando directamente su estado.
+aparece además **TDA**, porque estás preguntando y manipulando el estado en lugar de decirle a `Cuenta` que retire.
 
 ---
 
-## PoLC — Principle of Least Commitment
+# 2. PoLC — Principle of Least Commitment
 
-**Principio de mínimo compromiso.**
+## Idea
 
-Una interfaz debería exponer solamente el **comportamiento esencial** que necesitan sus usuarios.
+**Una clase debería depender del mínimo comportamiento que realmente necesita.**
 
-### Ejemplo
+No significa simplemente "tener pocos métodos". Significa que un usuario de una abstracción no debería quedar comprometido con detalles que no necesita.
 
-Si una `Cartulina` puede:
+## Ejemplo
 
-- pintar;
-    
-- doblar;
-    
-- reciclar;
-    
+Supongamos:
 
-una interfaz `Reciclable` debería exponer solamente:
-
-```
-reciclar();
-```
-
-Entonces un reciclador puede trabajar con:
-
-```
-Reciclable
-```
-
-en lugar de depender directamente de:
-
-```
-Cartulina
-```
-
-### ¿Por qué?
-
-Reduce dependencias innecesarias y aumenta:
-
-- modularidad;
-    
-- flexibilidad;
-    
-- cohesión.
-    
-
----
-
-## PoLA — Principle of Least Astonishment
-
-**Principio de mínimo asombro.**
-
-Un componente debería comportarse de la manera que el usuario del código **razonablemente espera**.
-
-No debería producir efectos secundarios sorprendentes ni hacer cosas que no correspondan a su abstracción.
-
-### Ejemplo
-
-Si existe:
-
-```
-lista.ordenar();
-```
-
-no debería, inesperadamente, también guardar la lista en una base de datos.
-
-### Idea clave
-
-> El comportamiento debe ser coherente, intuitivo y predecible.
-
----
-
-## PoLK — Principle of Least Knowledge
-
-**Principio de mínimo conocimiento.**
-
-Un objeto debería conocer lo menos posible sobre la estructura interna de otros objetos.
-
-Un método debería invocar métodos solamente de:
-
-- su propia clase;
-    
-- sus atributos;
-    
-- los objetos recibidos como parámetros;
-    
-- los objetos creados dentro del propio método.
-    
-
-### Ejemplo problemático
-
-```
-pedido.getCliente().getDireccion().getCodigoPostal();
-```
-
-El código necesita conocer demasiada estructura interna de `Pedido`, `Cliente` y `Direccion`.
-
-### Idea clave
-
-Evitar navegar innecesariamente por cadenas de objetos.
-
-Esto reduce el **acoplamiento**.
-
----
-
-## DRY — Don't Repeat Yourself
-
-**No te repitas.**
-
-Evitar duplicar información.
-
-La duplicación puede aparecer en:
-
-- código;
-    
-- datos;
-    
-- documentación.
-    
-
-### Ejemplo
-
-Si el mismo cálculo aparece en varios métodos:
-
-```
-precio * 1.21
-```
-
-podría centralizarse en una abstracción apropiada.
-
-### Idea clave
-
-> Una misma idea debería tener, idealmente, una única fuente de verdad.
-
-Esto mejora la mantenibilidad: si la lógica cambia, se modifica en un solo lugar.
-
----
-
-## YAGNI — You Aren't Gonna Need It
-
-**No lo vas a necesitar.**
-
-No agregar funcionalidades, métodos, módulos o abstracciones **anticipadamente**.
-
-### Ejemplo
-
-No crear:
-
-```
-exportarExcel();
-exportarPDF();
-exportarCSV();
-exportarXML();
-```
-
-si actualmente el sistema solamente necesita exportar CSV.
-
-### Idea clave
-
-No significa eliminar flexibilidad o escalabilidad.
-
-Significa:
-
-> No resolver problemas que todavía no existen.
-
-El código innecesario aumenta:
-
-- complejidad;
-    
-- tiempo de desarrollo;
-    
-- mantenimiento;
-    
-- posibilidades de errores.
-    
-
----
-
-## KISS — Keep It Simple, Stupid
-
-**Mantenelo simple.**
-
-Los sistemas suelen ser más mantenibles y comprensibles cuando se evita la complejidad innecesaria.
-
-### Evitar
-
-- _spaghetti code_;
-    
-- funciones enormes;
-    
-- demasiadas clases;
-    
-- demasiados módulos o librerías;
-    
-- soluciones "elegantes" pero difíciles de entender.
-    
-
-### Ejemplo
-
-Una solución de 5 líneas claras suele ser preferible a una solución extremadamente abstracta que requiere entender 8 clases para realizar una tarea simple.
-
-### Idea clave
-
-> La complejidad debe justificarse.
-
----
-
-## EDP — Explicit Dependencies Principle
-
-**Principio de dependencias explícitas.**
-
-Una clase o método debería declarar explícitamente los objetos que necesita para funcionar.
-
-Las dependencias pueden expresarse mediante:
-
-- parámetros;
-    
-- constructor.
-    
-
-### Ejemplo
-
-```
-public ServicioUsuario(RepositorioUsuarios repositorio) {
-    this.repositorio = repositorio;
+```java
+class Cartulina {
+    public void pintar() { }
+    public void doblar() { }
+    public void reciclar() { }
 }
 ```
 
-es preferible a que `ServicioUsuario` cree internamente un repositorio ocultando su dependencia.
+Un reciclador solamente necesita reciclar cosas.
 
-### ¿Por qué?
+### Problema
 
-Las dependencias explícitas hacen que sea más fácil:
-
-- comprender la clase;
-    
-- modificarla;
-    
-- probarla.
-    
-
----
-
-## KOP — Knuth's Optimization Principle
-
-**Principio de optimización de Knuth.**
-
-No optimizar prematuramente.
-
-Primero se debe conseguir un programa que:
-
-1. funcione correctamente;
-    
-2. luego, si es necesario, identificar qué partes realmente necesitan optimización.
-    
-
-### Ejemplo
-
-No reemplazar código claro por código extremadamente complejo solamente porque _podría_ ser más rápido, sin haber comprobado que exista un problema real de rendimiento.
-
-### Idea clave
-
-> Optimizar en el momento adecuado y en los lugares que realmente lo requieren.
-
----
-
-## SoC — Separation of Concerns
-
-**Separación de incumbencias.**
-
-Separar el sistema en módulos donde cada uno tenga una responsabilidad o incumbencia diferente.
-
-### Ejemplos de incumbencias
-
-- lógica de negocio;
-    
-- interfaz visual;
-    
-- acceso a datos;
-    
-- conexión con servicios externos.
-    
-
-### Ejemplo
-
-Una clase que calcula una compra no debería también:
-
-- mostrar botones;
-    
-- conectarse directamente a la base de datos;
-    
-- enviar emails.
-    
-
-### Idea clave
-
-Cambiar una parte del sistema debería afectar lo menos posible a las demás.
-
-Esto mejora:
-
-- modularidad;
-    
-- mantenibilidad;
-    
-- separación del trabajo.
-    
-
----
-
-# Buenas prácticas
-
-## Legibilidad
-
-El código se escribe una vez, pero se lee muchas veces.
-
-Por eso hay que escribir pensando en la persona que tendrá que leerlo después.
-
-> Código que funciona pero nadie entiende también es difícil de mantener.
-
----
-
-## Estandarizar
-
-Dentro de un proyecto se deberían utilizar convenciones consistentes para:
-
-- nombres;
-    
-- formato;
-    
-- comentarios;
-    
-- documentación.
-    
-
-Siempre que sea posible, conviene seguir los estándares del lenguaje utilizado.
-
-### Ejemplo
-
-No mezclar:
-
-```
-obtenerUsuario()
+```java
+class Reciclador {
+    public void reciclar(Cartulina cartulina) {
+        cartulina.reciclar();
+    }
+}
 ```
 
-con:
+El `Reciclador` quedó comprometido con `Cartulina`, aunque solamente necesita una capacidad: `reciclar()`.
 
-```
-Get_User()
-```
+### Mejor
 
-dentro del mismo proyecto.
-
----
-
-## "Nadie es el Messi de la programación"
-
-No escribir código para demostrar que uno es inteligente.
-
-Evitar código excesivamente ingenioso o comprimido si perjudica la comprensión.
-
-### Ejemplo
-
-Esto puede funcionar:
-
-```
-return x > 0 ? x * 2 : x == 0 ? 0 : -x;
+```java
+interface Reciclable {
+    void reciclar();
+}
 ```
 
-pero dependiendo del contexto podría ser más legible expresar la lógica de forma más clara.
+```java
+class Cartulina implements Reciclable {
+    public void pintar() { }
+    public void doblar() { }
 
-También hay que evitar comentar lo obvio.
-
----
-
-# Nombres
-
-Nombrar correctamente es importante porque los nombres ayudan a que el código explique qué está haciendo.
-
-Si es difícil encontrar un buen nombre para una entidad, puede ser una señal de que esa entidad no está bien definida.
-
-## Recomendaciones
-
-Los nombres deberían ser:
-
-- intuitivos;
-    
-- legibles;
-    
-- consistentes en un idioma;
-    
-- descriptivos;
-    
-- relacionados con lo que representan, no solamente con su tipo.
-    
-
-### Ejemplos
-
-Preferir:
-
-```
-usuarios
+    @Override
+    public void reciclar() { }
+}
 ```
 
-antes que:
+Ahora:
 
-```
-arregloUsuarios
-```
-
-Preferir:
-
-```
-pesoEnKg
+```java
+class Reciclador {
+    public void reciclar(Reciclable objeto) {
+        objeto.reciclar();
+    }
+}
 ```
 
-antes que:
+`Reciclador` sabe solamente lo que necesita saber.
 
-```
-peso
-```
+## Una forma fácil de pensarlo
 
-Los nombres cortos son aceptables en casos claros y convencionales:
+Preguntate:
 
-```
-i
-max
-min
-cant
-```
+> **"¿Estoy dependiendo de algo más específico de lo necesario?"**
 
----
+Si la respuesta es sí, probablemente haya un problema de mínimo compromiso.
 
-## Nombres de funciones
+## Cómo diferenciarlo de EDP
 
-El nombre debería describir **qué hace** la función, no cómo está implementada.
-
-Debe ser:
-
-- claro;
-    
-- completo;
-    
-- conciso.
-    
-
-### Ejemplo
-
-En un módulo de acceso a usuarios:
-
-```
-obtener()
-```
-
-puede ser suficiente si el contexto ya deja claro qué se obtiene.
-
-Evitar nombres confusos o abreviaturas innecesarias:
-
-```
-obtUsr()
-getUsrDB()
-```
-
----
-
-# Métodos y legibilidad
-
-## Evitar dependencias innecesarias del orden de ejecución
-
-Idealmente, los métodos deberían poder utilizarse sin requerir recordar un orden especial.
-
-Si existe un orden obligatorio, debería estar claramente documentado.
-
----
-
-## Recursividad
-
-Usarla cuando realmente mejora la legibilidad.
-
-La presentación también distingue la recursividad directa de ciclos indirectos entre métodos.
-
-Ejemplo de ciclo indirecto problemático:
-
-```
-A → B → A
-```
-
----
-
-# Parámetros
-
-Se recomienda:
-
-- tener pocos parámetros;
-    
-- mantener un criterio de orden consistente;
-    
-- validar los parámetros al comienzo del método;
-    
-- no modificar parámetros salvo que el método lo indique explícitamente.
-    
-
-### Ejemplo
-
-Una función de ordenamiento _in-place_ sí puede modificar su argumento, porque forma parte explícita de su comportamiento.
-
----
-
-# Comentarios
-
-Los comentarios pueden servir para:
-
-- aclarar código poco intuitivo;
-    
-- explicar una decisión controversial;
-    
-- documentar la fuente de un algoritmo.
-    
-
-Sin embargo, el objetivo debería ser que el código sea lo suficientemente claro como para no necesitar demasiados comentarios.
-
-### Idea clave
-
-> Un comentario debería aportar información que el código no pueda expresar claramente.
-
----
-
-# Bad smells / malas prácticas
-
-Un _bad smell_ es una señal de que puede existir un problema de diseño o una oportunidad de mejorar el código.
-
-No siempre significa que el código esté necesariamente mal, pero merece atención.
-
----
-
-## Romper el anonimato de los objetos
-
-Si el modelo está bien diseñado, normalmente no debería ser necesario preguntar constantemente de qué clase es un objeto.
-
-Evitar, cuando sea posible:
-
-```
-objeto instanceof Clase
-objeto.getClass()
-```
-
-También puede ser una señal de mal diseño crear métodos como:
-
-```
-getTipoDeObjeto()
-```
-
-solamente para decidir externamente cómo tratar al objeto.
-
-### Idea
-
-Muchas veces el **polimorfismo** permite delegar el comportamiento correcto al propio objeto.
-
----
-
-## Acceder al estado interno de otro objeto
-
-Un objeto no debería necesitar conocer directamente los detalles internos de otro.
-
-En lugar de manipular atributos ajenos, debería interactuar mediante comportamiento y mensajes.
-
-### Ejemplo conceptual
-
-En vez de:
-
-```
-cuenta.saldo -= monto;
-```
-
-preferir:
-
-```
-cuenta.retirar(monto);
-```
-
----
-
-## Números mágicos
-
-Evitar números _hardcodeados_ cuyo significado no sea evidente.
-
-### Ejemplo
-
-En vez de:
-
-```
-if (edad >= 18)
-```
-
-dependiendo del contexto, puede ser más claro:
-
-```
-if (edad >= EDAD_MINIMA)
-```
-
-Esto hace explícito el significado del valor.
-
-La presentación admite casos triviales como `0`, `1` o `null`.
-
----
-
-# Comentarios problemáticos
-
-## Información inapropiada
-
-Los comentarios deberían referirse al código cercano.
-
-Información sobre:
-
-- bugs;
-    
-- deuda técnica;
-    
-- tareas futuras;
-    
-
-debería estar en herramientas o documentación apropiadas.
-
----
-
-## Comentarios obsoletos
-
-Un comentario viejo, incorrecto o irrelevante es peligroso porque puede llevar al lector a entender mal el código.
-
-Hay que actualizarlo o eliminarlo.
-
----
-
-## Comentarios redundantes
-
-Evitar comentarios que simplemente repiten lo que ya dice el código.
+- **PoLC:** se preocupa por **cuánto de una abstracción necesita conocer/dependender** el cliente.
+- **EDP:** se preocupa por **cómo se obtienen las dependencias que sí necesita**.
 
 Ejemplo:
 
-```
-// Incrementa contador
-contador++;
-```
+```java
+class Reciclador {
+    private Reciclable objeto;
 
-El comentario no aporta información nueva.
-
----
-
-## Código comentado
-
-No dejar código viejo comentado "por si acaso".
-
-Problemas:
-
-- dificulta la lectura;
-    
-- puede quedar desactualizado;
-    
-- nadie sabe si todavía es relevante.
-    
-
-### Idea clave
-
-> Para conservar versiones anteriores existe Git.
-
----
-
-# Funciones
-
-## Demasiados argumentos
-
-Cuantos menos parámetros, mejor.
-
-Según la presentación, más de tres parámetros ya es cuestionable.
-
-Muchos argumentos pueden indicar que:
-
-- la función hace demasiado;
-    
-- existe una abstracción faltante.
-    
-
----
-
-## Parámetros Flag
-
-Un parámetro booleano puede indicar que una función realiza más de una cosa.
-
-Ejemplo:
-
-```
-procesar(usuario, true);
+    public Reciclador(Reciclable objeto) {
+        this.objeto = objeto;
+    }
+}
 ```
 
-El comportamiento depende de una bandera y puede resultar ambiguo.
+Acá:
 
-Puede ser preferible separar comportamientos:
+- usar `Reciclable` en lugar de `Cartulina` → **PoLC**;
+- recibir `Reciclable` por constructor en lugar de crearlo internamente → **EDP**.
 
+Pueden aplicarse simultáneamente.
+
+---
+
+# 3. PoLA — Principle of Least Astonishment
+
+## Idea
+
+**El código debería comportarse de la manera que razonablemente espera quien lo utiliza.**
+
+El problema no es necesariamente que el código esté "mal". El problema es que hace algo inesperado para su abstracción o nombre.
+
+## Ejemplo
+
+Supongamos:
+
+```java
+class Lista {
+    public void ordenar() {
+        // ordena los elementos
+    }
+}
 ```
-procesarNormal(usuario);
-procesarUrgente(usuario);
+
+Un usuario razonablemente espera que:
+
+```java
+lista.ordenar();
 ```
 
-cuando conceptualmente son operaciones diferentes.
+ordene la lista.
 
----
+### Sorprendente
 
-## Funciones muertas
-
-Un método que nunca es llamado probablemente debería eliminarse.
-
-Mantener código sin uso:
-
-- aumenta la complejidad;
-    
-- confunde;
-    
-- genera mantenimiento innecesario.
-    
-
----
-
-# Problemas generales
-
-## Múltiples lenguajes en un archivo
-
-Los lenguajes modernos permiten mezclar distintos formatos, por ejemplo:
-
-- Java;
-    
-- XML;
-    
-- JSON;
-    
-- YAML.
-    
-
-La presentación recomienda evitarlo cuando sea posible y mantener una separación clara.
-
----
-
-## Comportamiento obvio no implementado
-
-Una clase o función debería hacer lo que su nombre y abstracción hacen esperar.
-
-Cuando el comportamiento es inesperado, el lector deja de confiar en el código y necesita inspeccionar toda la implementación.
-
-Está relacionado con **PoLA**.
-
----
-
-## Saltear medidas de seguridad
-
-No ignorar mecanismos de seguridad o advertencias sin una razón muy justificada.
-
-Ejemplos:
-
-- _warnings_ del compilador;
-    
-- pruebas.
-    
-
----
-
-## Duplicación
-
-Código duplicado puede indicar una oportunidad de abstracción.
-
-Está directamente relacionado con **DRY**.
-
----
-
-## Demasiada información
-
-Un módulo bien definido debería tener una interfaz relativamente pequeña que permita hacer mucho.
-
-Evitar exponer innecesariamente:
-
-- datos internos;
-    
-- funciones auxiliares;
-    
-- constantes;
-    
-- métodos que no forman parte del comportamiento esencial.
-    
-
-Está relacionado con:
-
-- PoLC;
-    
-- encapsulamiento;
-    
-- bajo acoplamiento.
-    
-
----
-
-## Código muerto
-
-Además de métodos sin uso, puede incluir:
-
-- `if` con condiciones que nunca ocurren;
-    
-- `catch` que nunca se ejecutan;
-    
-- casos de un `switch` imposibles.
-    
-
-El código muerto suele quedar desactualizado con el tiempo.
-
----
-
-## Separación vertical
-
-Las variables y funciones deberían estar definidas cerca de donde se utilizan, en términos de la estructura del código.
-
-Esto facilita seguir el flujo y encontrar la información necesaria.
-
----
-
-## Inconsistencia
-
-Elegir convenciones y mantenerlas.
-
-La inconsistencia obliga al lector a aprender nuevas reglas constantemente.
-
-Está relacionada con el principio de mínimo asombro.
-
----
-
-## Acoplamiento artificial
-
-No relacionar artificialmente conceptos que no pertenecen juntos.
-
-Hay que pensar cuidadosamente dónde colocar:
-
-- funciones;
-    
-- constantes;
-    
-- enumeraciones;
-    
-- otras entidades.
-    
-
-Ejemplo: un `enum` general no debería estar dentro de una clase específica solamente por comodidad.
-
----
-
-## Feature Envy — Envidia de la funcionalidad
-
-Un método debería interesarse principalmente por los datos y comportamiento de su propia clase.
-
-Hay _feature envy_ cuando un método utiliza constantemente `getters` y `setters` de otro objeto para realizar una lógica que probablemente debería estar en ese otro objeto.
-
-### Ejemplo conceptual
-
-Si `CalculadoraDePago` extrae constantemente datos de `Empleado`:
-
+```java
+class Lista {
+    public void ordenar() {
+        ordenarElementos();
+        guardarEnBaseDeDatos();
+        enviarEmailAlAdministrador();
+    }
+}
 ```
+
+El método hace cosas que no se desprenden de su nombre ni de la responsabilidad esperada de `ordenar()`.
+
+## Otro ejemplo más sutil
+
+```java
+class Cuenta {
+    public double getSaldo() {
+        cerrarCuenta();
+        return saldo;
+    }
+}
+```
+
+Un `getSaldo()` normalmente se interpreta como una consulta.
+
+Que consultar el saldo cierre la cuenta sería un comportamiento inesperado.
+
+## Cómo diferenciarlo de SoC
+
+- **PoLA:** "¿Este comportamiento sorprende al usuario de esta clase/método?"
+- **SoC:** "¿Estoy mezclando incumbencias diferentes en el mismo componente?"
+
+Por ejemplo, que `ordenar()` además envíe un email puede violar **SoC** porque mezcla lógica de ordenamiento con comunicación externa.
+
+Pero también viola **PoLA** porque quien llama a `ordenar()` no espera que se envíe un email.
+
+Una misma situación puede violar ambos, pero por motivos diferentes.
+
+---
+
+# 4. PoLK — Principle of Least Knowledge
+
+## Idea
+
+**Un objeto debería conocer lo menos posible sobre la estructura interna de otros objetos.**
+
+Una forma clásica de detectarlo es buscar cadenas de llamadas:
+
+```java
+a.getB().getC().getD()
+```
+
+Cuanto más necesitás conocer la estructura interna de otros objetos, mayor es el acoplamiento.
+
+## Ejemplo
+
+Supongamos:
+
+```java
+class Pedido {
+    private Cliente cliente;
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+}
+```
+
+```java
+class Cliente {
+    private Direccion direccion;
+
+    public Direccion getDireccion() {
+        return direccion;
+    }
+}
+```
+
+```java
+class Direccion {
+    public String getCodigoPostal() {
+        return "1824";
+    }
+}
+```
+
+### Problema
+
+```java
+pedido.getCliente()
+      .getDireccion()
+      .getCodigoPostal();
+```
+
+El código que trabaja con `Pedido` necesita conocer que:
+
+```text
+Pedido
+  └── tiene Cliente
+        └── tiene Direccion
+              └── tiene CodigoPostal
+```
+
+Si cambia la estructura interna, puede romperse código externo.
+
+### Mejor
+
+```java
+class Pedido {
+    public String getCodigoPostalEntrega() {
+        return cliente.getDireccion().getCodigoPostal();
+    }
+}
+```
+
+Desde afuera:
+
+```java
+pedido.getCodigoPostalEntrega();
+```
+
+El usuario de `Pedido` no necesita conocer cómo está organizado internamente.
+
+## Cómo diferenciarlo de TDA
+
+Este ejemplo también puede verse desde TDA, pero la pregunta que te conviene hacer en el examen es:
+
+- **TDA:** "¿Estoy preguntando por datos para hacer una operación que debería hacer el objeto?"
+- **PoLK:** "¿Estoy conociendo/navegando la estructura interna de otros objetos?"
+
+Un caso puede violar ambos.
+
+### Relación con Feature Envy
+
+Si una clase hace constantemente:
+
+```java
 empleado.getHoras();
 empleado.getTarifa();
 empleado.getHorasExtra();
 ```
 
-puede ser una señal de que parte de esa lógica debería pertenecer a `Empleado`.
+para calcular algo que conceptualmente pertenece a `Empleado`, además de conocimiento excesivo puede haber **Feature Envy**.
+
+Pero para distinguir los principios permitidos, quedate con:
+
+> **PoLK = reducir el conocimiento estructural entre objetos.**
 
 ---
 
-## Obscured Intent — Intención oculta
+# 5. EDP — Explicit Dependencies Principle
 
-El código debería expresar claramente qué está haciendo.
+## Idea
 
-Evitar:
+**Una clase debería dejar explícito qué objetos necesita para funcionar.**
 
-- nombres crípticos;
-    
-- números mágicos;
-    
-- líneas excesivamente complejas;
-    
-- formato difícil de leer.
-    
+Una dependencia es explícita cuando puede verse en la interfaz de la clase, por ejemplo en un parámetro o en el constructor.
 
-### Ejemplo
+## Ejemplo
 
-Preferir:
+Supongamos un servicio que necesita un repositorio.
 
-```
-horasExtra * tarifaHora
-```
+### Dependencia oculta
 
-antes que:
+```java
+class ServicioUsuario {
+    private RepositorioUsuarios repositorio;
 
-```
-h * r
-```
-
-cuando el contexto no hace evidente el significado.
-
----
-
-## Static inapropiado
-
-Los métodos estáticos son útiles cuando el comportamiento depende únicamente de sus parámetros y no de un estado.
-
-Sin embargo, el abuso de `static` puede reducir la posibilidad de utilizar polimorfismo.
-
-### Ejemplo conceptual
-
-Una función estática fija una implementación.
-
-Una abstracción con métodos de instancia puede permitir distintas implementaciones mediante polimorfismo.
-
----
-
-## Preferir polimorfismo
-
-Cuando existen distintos comportamientos según el tipo de objeto, muchas veces conviene utilizar polimorfismo en lugar de grandes cadenas de:
-
-```
-if / else
-```
-
-o:
-
-```
-switch / case
-```
-
-### Ejemplo
-
-En vez de:
-
-```
-if (figura instanceof Circulo) {
-    ...
-} else if (figura instanceof Rectangulo) {
-    ...
+    public ServicioUsuario() {
+        repositorio = new RepositorioUsuarios();
+    }
 }
 ```
 
-cada figura puede implementar:
+Para entender qué necesita `ServicioUsuario`, hay que mirar el interior del constructor.
 
+Además, la clase decidió por sí misma qué implementación concreta utilizar.
+
+### Dependencia explícita
+
+```java
+class ServicioUsuario {
+    private RepositorioUsuarios repositorio;
+
+    public ServicioUsuario(RepositorioUsuarios repositorio) {
+        this.repositorio = repositorio;
+    }
+}
 ```
-figura.calcularArea();
+
+Ahora la dependencia aparece directamente en la declaración:
+
+```java
+new ServicioUsuario(repositorio)
+```
+
+Es evidente que `ServicioUsuario` necesita un `RepositorioUsuarios`.
+
+## ¿Por qué es útil?
+
+Facilita:
+
+- comprender la clase;
+- reemplazar dependencias;
+- probar la clase;
+- reutilizarla en otros contextos.
+
+Por ejemplo, en una prueba podemos pasar:
+
+```java
+RepositorioUsuariosFalso
+```
+
+en lugar del repositorio real.
+
+## Cómo diferenciarlo de PoLC
+
+Esta diferencia es especialmente importante:
+
+### PoLC
+
+Pregunta:
+
+> **"¿De qué cosa estoy dependiendo?"**
+
+```java
+void procesar(Cartulina cartulina)
+```
+
+si solamente necesito reciclarla es demasiado específico.
+
+### EDP
+
+Pregunta:
+
+> **"¿Cómo llega a mí la cosa que necesito?"**
+
+```java
+ServicioUsuario() {
+    repositorio = new RepositorioUsuarios();
+}
+```
+
+oculta una dependencia que podría recibirse externamente.
+
+Por eso, PoLC y EDP pueden aparecer juntos:
+
+```java
+class ServicioUsuario {
+    public ServicioUsuario(RepositorioUsuarios repositorio) {
+        ...
+    }
+}
+```
+
+El constructor hace explícita la dependencia (**EDP**) y, si `RepositorioUsuarios` es una abstracción suficientemente general para lo que el servicio necesita, también puede aplicar **PoLC**.
+
+---
+
+# 6. KOP — Knuth's Optimization Principle
+
+## Idea
+
+**No optimizar prematuramente.**
+
+Primero hay que conseguir una solución correcta y razonablemente clara. Después, si existe un problema real de rendimiento, se identifica dónde está y se optimiza esa parte.
+
+La idea no es "el rendimiento no importa".
+
+La idea es:
+
+> **No sacrificar claridad por una optimización que todavía no sabemos si necesitamos.**
+
+## Ejemplo
+
+Supongamos que necesitamos buscar un usuario.
+
+Una solución simple:
+
+```java
+public Usuario buscar(String nombre, List<Usuario> usuarios) {
+    for (Usuario usuario : usuarios) {
+        if (usuario.getNombre().equals(nombre)) {
+            return usuario;
+        }
+    }
+
+    return null;
+}
+```
+
+Alguien podría reemplazar inmediatamente todo por una estructura mucho más compleja "porque es más rápida".
+
+El problema es que todavía no sabemos:
+
+- cuántos usuarios habrá;
+- cuánto tiempo tarda realmente;
+- si esa operación es un cuello de botella;
+- si la optimización complica innecesariamente el código.
+
+### Aplicación de KOP
+
+Primero implementamos una solución correcta y clara.
+
+Después medimos.
+
+Si descubrimos que `buscar()` consume una parte importante del tiempo de ejecución, recién entonces analizamos alternativas como un `HashMap`.
+
+## Importante
+
+KOP **no dice**:
+
+> "Siempre usá la solución más lenta y simple."
+
+Dice:
+
+> "No optimices sin una razón basada en un problema real."
+
+Si desde el comienzo existe un requisito explícito de rendimiento, entonces sí hay una razón para diseñar teniendo ese rendimiento en cuenta.
+
+---
+
+# 7. SoC — Separation of Concerns
+
+## Idea
+
+**Separar diferentes incumbencias del sistema para que cada parte se encargue de una preocupación distinta.**
+
+Una incumbencia puede ser, por ejemplo:
+
+- lógica de negocio;
+- persistencia;
+- interfaz;
+- comunicación externa;
+- generación de reportes.
+
+## Ejemplo
+
+Supongamos una compra.
+
+### Problema
+
+```java
+class Compra {
+    public void procesar() {
+        // calcula total
+        // valida stock
+        // guarda en base de datos
+        // genera PDF
+        // envía email
+    }
+}
+```
+
+Esta clase está mezclando muchas incumbencias.
+
+Si cambia la base de datos, la generación del PDF o el sistema de emails, `Compra` puede necesitar modificaciones.
+
+### Mejor separación
+
+```java
+class CalculadorDeCompra {
+    public double calcularTotal(Compra compra) {
+        // lógica de negocio
+    }
+}
+```
+
+```java
+class RepositorioCompras {
+    public void guardar(Compra compra) {
+        // persistencia
+    }
+}
+```
+
+```java
+class GeneradorDeFactura {
+    public void generar(Compra compra) {
+        // generación de factura
+    }
+}
+```
+
+```java
+class ServicioEmail {
+    public void enviarFactura(Compra compra) {
+        // comunicación externa
+    }
+}
+```
+
+Cada componente se ocupa de una incumbencia distinta.
+
+## Cómo diferenciarlo de TDA
+
+Esto suele confundirse mucho.
+
+### TDA
+
+Se pregunta:
+
+> **"¿Quién debería realizar esta operación?"**
+
+Si `Compra` conoce la lógica de calcular su propio total, podría tener sentido:
+
+```java
+compra.calcularTotal();
+```
+
+en vez de sacar todos sus datos y calcularlos desde afuera.
+
+### SoC
+
+Se pregunta:
+
+> **"¿Qué incumbencias diferentes estoy mezclando?"**
+
+Que una clase calcule el total y además envíe emails mezcla dos preocupaciones diferentes.
+
+Por eso:
+
+```text
+TDA → dónde colocar un comportamiento relacionado con un objeto
+SoC → cómo separar preocupaciones diferentes del sistema
 ```
 
 ---
 
-## Seguir convenciones estándar
+# Comparaciones que suelen confundirse
 
-Usar convenciones conocidas del lenguaje reduce la necesidad de documentación adicional.
+## TDA vs PoLK
 
-El lector puede aprovechar conocimientos que ya posee.
+### TDA
+
+```java
+if (cuenta.getSaldo() >= monto) {
+    cuenta.setSaldo(cuenta.getSaldo() - monto);
+}
+```
+
+Problema principal:
+
+> Pregunto el estado de `Cuenta` y decido desde afuera qué hacer.
+
+Solución:
+
+```java
+cuenta.retirar(monto);
+```
+
+### PoLK
+
+```java
+pedido.getCliente().getDireccion().getCodigoPostal();
+```
+
+Problema principal:
+
+> Conozco demasiado sobre la estructura interna de otros objetos.
+
+Solución:
+
+```java
+pedido.getCodigoPostalEntrega();
+```
+
+### Regla mental
+
+> **TDA = "hacelo vos".**  
+> **PoLK = "no necesito saber cómo estás armado".**
 
 ---
 
-## Precisión
+## PoLC vs EDP
 
-Elegir cuidadosamente:
+### PoLC
 
-- tipos;
-    
-- visibilidad;
-    
-- abstracciones.
-    
+```java
+void reciclar(Cartulina cartulina)
+```
 
-### Ejemplos
+si solamente se necesita:
 
-- No usar `float` para representar precios.
-    
-- Si solamente se necesita una `List`, no depender innecesariamente de una implementación concreta.
-    
-- No hacer todos los atributos `protected` sin necesidad.
-    
+```java
+cartulina.reciclar();
+```
+
+Problema:
+
+> Estoy dependiendo de una abstracción más específica de lo necesario.
+
+### EDP
+
+```java
+class Servicio {
+    Servicio() {
+        repositorio = new Repositorio();
+    }
+}
+```
+
+Problema:
+
+> La dependencia existe, pero está escondida.
+
+Solución:
+
+```java
+Servicio(Repositorio repositorio)
+```
+
+### Regla mental
+
+> **PoLC = mínimo compromiso.**  
+> **EDP = dependencia visible.**
 
 ---
 
-## Encapsular condicionales
+## PoLA vs SoC
 
-La lógica booleana compleja puede ser difícil de leer.
+### PoLA
 
-Conviene extraerla a un método con un nombre expresivo.
-
-### Ejemplo
-
-En vez de:
-
-```
-if (timer.expiro() && !timer.esRecurrente())
+```java
+lista.ordenar();
 ```
 
-usar:
+y que eso además mande un email.
 
-```
-if (debeBorrarse(timer))
+Problema:
+
+> El comportamiento sorprende.
+
+### SoC
+
+```java
+class Compra {
+    calcularTotal();
+    guardarEnBD();
+    enviarEmail();
+}
 ```
 
-El nombre explica la intención.
+Problema:
+
+> Se mezclan incumbencias diferentes.
+
+### Regla mental
+
+> **PoLA = "¿me sorprende lo que hace?"**  
+> **SoC = "¿está mezclando preocupaciones diferentes?"**
 
 ---
 
-## Evitar condicionales negativos
+# Una misma situación puede violar varios principios
 
-Los condicionales positivos suelen ser más fáciles de comprender.
+Los principios no son compartimentos estancos.
 
-### Ejemplo
+Por ejemplo:
 
-Preferir:
-
+```java
+if (pedido.getCliente().getCuenta().getSaldo() >= monto) {
+    pedido.getCliente().getCuenta()
+          .setSaldo(pedido.getCliente().getCuenta().getSaldo() - monto);
+}
 ```
-if (usuario.esMayor())
+
+Acá pueden aparecer varios problemas:
+
+### TDA
+
+Se pregunta por el saldo y se modifica desde afuera.
+
+### PoLK
+
+Se conoce la estructura:
+
+```text
+Pedido → Cliente → Cuenta
 ```
 
-antes que:
+### PoLC
 
+Si el código solamente necesita retirar dinero, no necesita conocer toda esa estructura ni depender de esos detalles.
+
+Una posible solución sería:
+
+```java
+pedido.pagar(monto);
 ```
-if (!usuario.noEsMayor())
+
+y que `Pedido` delegue internamente lo necesario:
+
+```java
+class Pedido {
+    public void pagar(double monto) {
+        cliente.pagar(monto);
+    }
+}
 ```
+
+y:
+
+```java
+class Cliente {
+    public void pagar(double monto) {
+        cuenta.retirar(monto);
+    }
+}
+```
+
+Cada objeto conserva el conocimiento y comportamiento que le corresponde.
 
 ---
 
-## Las funciones deben hacer una sola cosa
+# Tabla mental para estudiar
 
-Una función debería tener una responsabilidad clara.
-
-Si una función:
-
-1. valida datos;
-    
-2. guarda información;
-    
-3. genera un reporte;
-    
-4. envía un email;
-    
-
-probablemente esté haciendo demasiadas cosas.
+| Principio | Pregunta que te ayuda a detectarlo |
+|---|---|
+| **TDA** | ¿Estoy preguntando datos para decidir desde afuera algo que debería hacer el objeto? |
+| **PoLC** | ¿Estoy dependiendo de algo más específico de lo que realmente necesito? |
+| **PoLA** | ¿El comportamiento de este componente sorprende razonablemente a quien lo usa? |
+| **PoLK** | ¿Estoy conociendo demasiado la estructura interna de otros objetos? |
+| **EDP** | ¿Las dependencias que necesita una clase están claramente declaradas? |
+| **KOP** | ¿Estoy complicando/optimizando el código sin haber demostrado que exista un problema de rendimiento? |
+| **SoC** | ¿Estoy mezclando incumbencias diferentes en el mismo componente? |
 
 ---
 
-## Encapsular condiciones borde
+# Una forma rápida de reconocerlos en un ejercicio
 
-Las condiciones especiales o de borde pueden ser difíciles de rastrear cuando están dispersas por todo el sistema.
+Cuando te den código y te pregunten qué principio se viola, podés recorrer estas preguntas:
 
-Conviene concentrarlas en un lugar o abstraerlas adecuadamente.
+1. **¿Un objeto está preguntando datos y haciendo el trabajo que debería hacer otro?**
+   → **TDA**
 
----
+2. **¿Una clase depende de una abstracción más grande o específica de lo que necesita?**
+   → **PoLC**
 
-# Resumen final
+3. **¿Un método hace algo inesperado para su nombre o abstracción?**
+   → **PoLA**
 
-Los principios de diseño apuntan, en conjunto, a producir software:
+4. **¿Hay cadenas de `get...().get...().get...` o conocimiento de la estructura interna?**
+   → **PoLK**
 
-- **simple** → KISS;
-    
-- **sin duplicación** → DRY;
-    
-- **sin funcionalidad innecesaria** → YAGNI;
-    
-- **con responsabilidades separadas** → SoC;
-    
-- **con pocas dependencias y poco conocimiento entre objetos** → PoLC y PoLK;
-    
-- **con comportamiento intuitivo** → PoLA;
-    
-- **orientado al comportamiento de los objetos** → Tell, Don't Ask;
-    
-- **con dependencias claras** → EDP;
-    
-- **optimizado solamente cuando corresponde** → KOP.
-    
+5. **¿La clase crea internamente objetos que necesita en lugar de recibirlos?**
+   → **EDP**
 
-## Idea general para recordar
+6. **¿Se está optimizando o complicando el código sin evidencia de que haga falta?**
+   → **KOP**
 
-> **Un buen diseño busca que cada componente tenga una responsabilidad clara, conozca poco sobre los demás, exponga solamente lo necesario y se comporte de forma simple y predecible.**
+7. **¿Una clase o módulo mezcla responsabilidades/incumbencias diferentes?**
+   → **SoC**
+
+## Idea final
+
+Los siete principios pueden resumirse así:
+
+> **TDA:** cada objeto debería hacerse cargo de su comportamiento.  
+> **PoLC:** depender de lo mínimo necesario.  
+> **PoLA:** comportarse como razonablemente se espera.  
+> **PoLK:** conocer lo mínimo sobre los demás.  
+> **EDP:** hacer visibles las dependencias.  
+> **KOP:** optimizar cuando exista una razón real.  
+> **SoC:** separar incumbencias diferentes.
+
+Una buena forma de estudiarlos no es memorizar solamente las definiciones, sino aprender a reconocer **qué pregunta responde cada uno**.
