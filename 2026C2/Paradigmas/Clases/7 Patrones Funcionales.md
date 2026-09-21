@@ -265,7 +265,8 @@ public class TiendaPublisher {
 
     public void cambiarStock(String nuevoEstado) {
         this.estadoStock = nuevoEstado;
-        System.out.println("Tienda: El estado del stock ha cambiado a -> " + nuevoEstado);
+        System.out.println("Tienda: El estado del stock ha cambiado a -> " + 
+        nuevoEstado);
         notificarSuscriptores();
     }
 }
@@ -280,7 +281,8 @@ public class ClienteUsuario implements Suscriptor {
 
     @Override
     public void actualizar(String mensajeEstado) {
-        System.out.println("Notificación enviada a " + nombre + ": " + mensajeEstado);
+        System.out.println("Notificación enviada a " + nombre + ": " + 
+        mensajeEstado);
     }
 }
 
@@ -288,7 +290,8 @@ public class ClienteUsuario implements Suscriptor {
 public class SistemaInventarioMinorista implements Suscriptor {
     @Override
     public void actualizar(String mensajeEstado) {
-        System.out.println("Sistema Minorista actualizó su panel de disponibilidad: " + mensajeEstado);
+        System.out.println("Sistema Minorista actualizó su panel de 
+        disponibilidad: " + mensajeEstado);
     }
 }
 
@@ -299,7 +302,8 @@ public class EjemploObserver {
 
         ClienteUsuario juan = new ClienteUsuario("Juan Pérez");
         ClienteUsuario maria = new ClienteUsuario("María Gómez");
-        SistemaInventarioMinorista sistemaMinorista = new SistemaInventarioMinorista();
+        SistemaInventarioMinorista sistemaMinorista = new 
+        SistemaInventarioMinorista();
 
         // Registrar suscriptores
         tienda.suscribir(juan);
