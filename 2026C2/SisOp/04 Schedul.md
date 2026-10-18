@@ -115,7 +115,9 @@ Si se relaja el supuesto 1 y se permite que los trabajos tengan diferentes durac
 
 * **Ejemplo Práctico/Técnico (Cálculo de Métricas):**
   Tres procesos llegan en $T_{arrival} = 0$: $A$ (dura 100s), $B$ (dura 10s), $C$ (dura 10s).
-  Orden de ejecución en FIFO: $A ightarrow B ightarrow C$.
+  Orden de ejecución en FIFO: $A 
+ightarrow B 
+ightarrow C$.
 
   ```
   [0 -------------- A -------------- 100][100 - B - 110][110 - C - 120]
@@ -139,7 +141,9 @@ Ordena la lista de procesos según su tiempo de ejecución de menor a mayor. Es 
 
 * **Ejemplo Práctico/Técnico (Comparación con FIFO):**
   Usando los mismos procesos: $A$ (100s), $B$ (10s), $C$ (10s), todos arribando en $t = 0$.
-  Orden de ejecución en SJF: $B ightarrow C ightarrow A$.
+  Orden de ejecución en SJF: $B 
+ightarrow C 
+ightarrow A$.
 
   ```
   [0 - B - 10][10 - C - 20][20 -------------- A -------------- 120]
@@ -187,9 +191,12 @@ Cada vez que un nuevo proceso ingresa al sistema (o un proceso se desbloquea), e
   ```
 
   Cálculo de $T_{turnaround}$:
-  * $A: T_{comp} = 120 ightarrow T_{turn} = 120 - 0 = 120$
-  * $B: T_{comp} = 20 ightarrow T_{turn} = 20 - 10 = 10$
-  * $C: T_{comp} = 30 ightarrow T_{turn} = 30 - 10 = 20$
+  * $A: T_{comp} = 120 
+ightarrow T_{turn} = 120 - 0 = 120$
+  * $B: T_{comp} = 20 
+ightarrow T_{turn} = 20 - 10 = 10$
+  * $C: T_{comp} = 30 
+ightarrow T_{turn} = 30 - 10 = 20$
   * **Turnaround Promedio:**
     $$\bar{T}_{turnaround} = \frac{120 + 10 + 20}{3} = \frac{150}{3} = 50\text{ segundos}$$
 
