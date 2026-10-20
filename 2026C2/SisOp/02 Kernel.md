@@ -21,7 +21,8 @@ Para resolver las deficiencias de la ejecución directa, los pioneros del sistem
                      │ Aplicación de Usuario (User Mode) │
                      └─────────────────┬─────────────────┘
                                        │
-                                       │ Ejecuta código directamente en CPU (Rápido)
+                                       │ Ejecuta código directamente en CPU
+                                       (Rápido)
                                        ▼
                      ┌───────────────────────────────────┐
                      │ Operación Protegida / Riesgosa?   │
