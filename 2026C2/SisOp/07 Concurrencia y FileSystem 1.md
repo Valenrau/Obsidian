@@ -281,7 +281,8 @@ Dado que un inodo no almacena el nombre de un archivo, ¿dónde se guardan los n
 ### El Dentry (Directory Entry)
 Un **Dentry** es una estructura lógica que establece una asociación directa entre un **nombre textual de archivo** y su correspondiente **número de inodo**:
 
-$$	ext{Dentry} = \langle 	ext{Nombre Textual}, 	ext{Número de Inodo} angle$$
+$$	ext{Dentry} = \langle 	ext{Nombre Textual}, 	ext{Número de Inodo} 
+angle$$
 
 ### La Naturaleza de un Directorio
 En Unix, **un directorio es un archivo especial cuyo contenido de datos es una lista estructurada de dentries**.
