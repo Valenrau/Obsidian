@@ -1,186 +1,8 @@
-# Sincronización Concurrente y Arquitectura de Sistemas de Archivos: Locks, Inodos, VFS y Dispositivos en Unix
+# Arquitectura de Sistemas de Archivos: Inodos, VFS y Dispositivos en Unix
 
-## 1. Concurrencia y Mecanismos de Sincronización: De las Secciones Críticas a los Locks
 
-En los entornos multiprocesador y multihilo modernos, la ejecución concurrente de flujos de control introduce el riesgo inherente de las **condiciones de carrera** (*race conditions*). Una condición de carrera ocurre cuando múltiples hilos o procesos acceden y modifican un recurso compartido (como estructuras de memoria dinámica, buffers o archivos) de manera simultánea, de modo que el resultado final de la ejecución depende impredeciblemente del orden exacto de intercalado de las instrucciones en la CPU.
 
-### Secciones Críticas y Exclusión Mutua
-Para evitar la corrupción de datos, se define como **sección crítica** a aquel fragmento de código que accede a un recurso compartido modificable. La propiedad fundamental que debe garantizarse sobre una sección crítica es la **exclusión mutua**: en cualquier instante de tiempo, un único hilo o proceso puede estar ejecutando dentro de dicha región de código.
-
-```
-       [ Hilo A ]                      [ Hilo B ]
-           │                               │
-    Intentar Adquirir Lock           Intentar Adquirir Lock
-           │ (Éxito)                       │ (En espera / Bloqueado)
-   ┌───────▼───────┐                       │
-   │  SECCIÓN      │                       │
-   │  CRÍTICA      │                       │
-   └───────┬───────┘                       │
-     Liberar Lock                          │
-           │                          Entrar a Sección Crítica
-           ▼                               │
-                                   ┌───────▼───────┐
-                                   │  SECCIÓN      │
-                                   │  CRÍTICA      │
-                                   └───────────────┘
-```
-
-#### Explicación Conceptual
-El mecanismo primitivo para implementar la exclusión mutua es el **Lock** (o Mútex). Funciona como un cerrojo que un hilo debe adquirir antes de ingresar a la sección crítica y liberar inmediatamente al salir. Si otro hilo intenta adquirir un lock que ya se encuentra retenido, debe esperar hasta que el poseedor actual lo libere.
-
-#### Analogía
-Imaginemos el baño de un avión. El baño representa la sección crítica y el pasador de la puerta es el lock. Solo una persona (hilo) puede estar dentro a la vez. Cuando el primer pasajero entra, desliza el pasador a posición de "cerrado" (*lock*). Si llega otro pasajero, observa la luz ocupada y debe esperar afuera en el pasador en la fila. Cuando el ocupante termina, abre el pasador (*unlock*), permitiendo que el siguiente pasajero ingrese de manera ordenada.
-
-#### Ejemplo Técnico en C (POSIX Mutex)
-En la API estándar de hilos de Unix (`pthreads`), la exclusión mutua se administra mediante el tipo de dato `pthread_mutex_t`:
-
-```c
-#include <pthread.h>
-#include <stdio.h>
-
-typedef struct {
-    int saldo;
-    pthread_mutex_t lock;
-} cuenta_bancaria_t;
-
-void depositar(cuenta_bancaria_t *cuenta, int monto) {
-    // Adquisición del lock (bloqueante)
-    pthread_mutex_lock(&cuenta->lock);
-    
-    // Inicio de la Sección Crítica
-    int saldo_actual = cuenta->saldo;
-    saldo_actual += monto;
-    cuenta->saldo = saldo_actual;
-    // Fin de la Sección Crítica
-    
-    // Liberación del lock
-    pthread_mutex_unlock(&cuenta->lock);
-}
-```
-
-La API POSIX también provee funciones alternativas como `pthread_mutex_trylock()`, la cual es no bloqueante y devuelve inmediatamente un código de error si el lock está ocupado, o `pthread_mutex_timedlock()`, que limita el tiempo máximo de espera.
-
----
-
-### Propiedades Formales de un Lock
-Para que un algoritmo o estructura de sincronización se considere correcto, debe satisfacer tres propiedades formales:
-
-1. **Exclusión Mutua (*Mutual Exclusion*):** Si un proceso $P_i$ está ejecutando en su sección crítica, ningún otro proceso puede estar ejecutando en su propia sección crítica asociada al mismo recurso.
-2. **Progreso (*Liveliness / Progress*):** Si ningún proceso está en su sección crítica y existen procesos que desean ingresar, solo aquellos que no están ejecutando en su sección restante pueden participar en la decisión de quién ingresará a continuación, y esta selección no puede posponerse indefinidamente.
-3. **Espera Acotada (*Bounded Waiting / Fairness*):** Debe existir un límite en el número de veces que se permite a otros procesos ingresar a sus secciones críticas después de que un proceso ha realizado una solicitud de ingreso y antes de que se conceda dicha solicitud, evitando la **inanición** (*starvation*).
-
----
-
-### Implementación de Locks: Spinlocks vs. Sleeplocks
-
-Dependiendo del comportamiento del hilo cuando encuentra un lock ocupado, los sistemas operativos dividen los locks en dos grandes familias de bajo nivel: **Spinlocks** y **Sleeplocks**.
-
-#### 1. Spinlocks (Busy Waiting)
-Un **Spinlock** es un lock donde el hilo que intenta adquirirlo se queda ejecutando un bucle activo (*busy wait* o *spinlock*), consultando de manera incesante una variable en memoria hasta que esta pasa a indicar que el lock se ha liberado.
-
-##### Mecanismo de Hardware y Instrucciones Atómicas
-Para que un Spinlock funcione correctamente en entornos multiprocesador con paralelismo real, la verificación y la modificación de la variable indicadora deben ejecutarse como una **instrucción atómica de hardware** (a todo o nada). Si un procesador intentara leer la variable y luego modificarla en dos instrucciones separadas, otro procesador físico podría intercalarse entre la lectura y la escritura, provocando que ambos piensen que adquirieron el lock simultáneamente.
-
-Las arquitecturas modernas proveen instrucciones como `atomic_swap`, `test-and-set` o `compare-and-swap`. Por ejemplo, la función intrínseca de C `__sync_lock_test_and_set(&lock->locked, 1)` ejecuta a nivel físico de la CPU los siguientes tres pasos como un único bloque indivisible e ininterrumpible:
-1. Lee el valor actual almacenado en la dirección de memoria.
-2. Escribe la constante `1` en dicha dirección.
-3. Devuelve el valor original que leyo.
-
-```c
-// Pseudocódigo de Adquisición de Spinlock en xv6
-void acquire(struct spinlock *lk) {
-    // Espera activa atómica: si devuelve 1, significaba que ya estaba ocupado (1).
-    // Si devuelve 0, significa que estaba libre (0) y atómicamente lo seteó en 1.
-    while(__sync_lock_test_and_set(&lk->locked, 1) != 0) {
-        // Quemar ciclos de reloj en espera activa
-    }
-    __sync_synchronize(); // Barrera de memoria
-}
-
-void release(struct spinlock *lk) {
-    __sync_synchronize();
-    __sync_lock_release(&lk->locked); // Setea lk->locked = 0 de forma atómica
-}
-```
-
-##### Metáfora
-Imaginar llamar a una persona por teléfono cada 2 segundos sin parar para ver si desocupó la línea. Se gasta energía y tiempo ininterrumpidamente hasta que finalmente la otra persona atiende.
-
-##### Uso y Limitaciones
-* **Cuándo usar:** Exclusivamente en el kernel para secciones críticas extremadamente cortas (del orden de microsegundos o pocos ciclos de reloj) y en sistemas multiprocesador.
-* **Cuándo NO usar:** Jamás en espacio de usuario ni para operaciones de E/S lentas. En sistemas de un solo procesador físico (*uniprocessor*), un Spinlock es totalmente ineficiente y redundante, ya que el hilo que espera consumirá todo su *time slice* quemando CPU sin permitir que el hilo que posee el lock se ejecute para liberarlo.
-
----
-
-#### 2. Sleeplocks (Bloqueo Activo / Sleep & Wakeup)
-Un **Sleeplock** es un lock donde el hilo que no puede adquirir la sección crítica cede voluntariamente la CPU, cambiando su estado de `RUNNING` a `SLEEPING` (bloqueado) y cediendo el control al planificador (*scheduler*).
-
-```c
-// Pseudocódigo simplificado de Sleeplock en xv6
-void acquiresleep(struct sleeplock *lk) {
-    acquire(&lk->lk); // Protege la estructura interna con un spinlock
-    while (lk->locked) {
-        sleep(lk, &lk->lk); // Cede la CPU y libera el spinlock atómicamente
-    }
-    lk->locked = 1;
-    release(&lk->lk);
-}
-
-void releasesleep(struct sleeplock *lk) {
-    acquire(&lk->lk);
-    lk->locked = 0;
-    wakeup(lk); // Despierta a todos los procesos dormidos en este canal
-    release(&lk->lk);
-}
-```
-
-##### Metáfora
-Tomar un número en la sala de espera de un consultorio médico y sentarse a dormir o leer un libro. No se quema energía preguntando cada segundo al médico; cuando el médico se desocupa, llama al siguiente número (*wakeup*), despertando al paciente.
-
-##### Comparativa Técnica: Spinlocks vs. Sleeplocks
-
-| Característica | Spinlock | Sleeplock |
-| :--- | :--- | :--- |
-| **Comportamiento en espera** | Espera activa (*Busy Waiting* / Bucle `while`). | Cambia estado a `SLEEPING` y llama al *scheduler*. |
-| **Consumo de CPU en espera** | 100% de uso de core / procesador. | 0% de uso de CPU durante la espera. |
-| **Costo de Transición** | Ultrabajo (cero cambio de contexto). | Alto (requiere un *Context Switch* completo). |
-| **Uso óptimo** | Secciones críticas extremadamente breves en Kernel. | Operaciones de E/S lentas (archivos, red) y espacio de usuario. |
-| **Soporte Uniprocesador** | Ineficiente / Prohibido en monopolio de CPU. | Funciona perfectamente en 1 o N procesadores. |
-
----
-
-### Interbloqueos (Deadlocks)
-
-Un **Deadlock** o interbloqueo es una condición anómala en la cual dos o más procesos se encuentran bloqueados permanentemente, debido a que cada uno de ellos retiene un recurso que el otro proceso necesita para continuar su ejecución, formando una dependencia circular.
-
-```
-  [ Proceso 1 ] ───── Posee ─────► [ Lock A ]
-       │                               ▲
-    Espera                           Retiene
-       ▼                               │
-   [ Lock B ] ◄───── Posee ────── [ Proceso 2 ]
-```
-
-#### Metáfora
-Cuatro automóviles llegando simultáneamente a un cruce de cuatro esquinas sin semáforo desde las cuatro direcciones opuestas, y cada uno avanza hasta bloquear la intersección a su derecha. Ningún automóvil puede avanzar ni retroceder sin que el otro se mueva primero.
-
-#### Caso Técnico de Código Cruzado
-Si dos hilos intentan adquirir dos locks (`Lock A` y `Lock B`) en orden invertido:
-
-```c
-// Hilo 1                               // Hilo 2
-pthread_mutex_lock(&lock_A);            pthread_mutex_lock(&lock_B);
-pthread_mutex_lock(&lock_B); // Bloquea   pthread_mutex_lock(&lock_A); // Bloquea
-```
-
-Si el Hilo 1 obtiene `Lock A` al mismo tiempo que el Hilo 2 obtiene `Lock B`, el Hilo 1 quedará esperando indefinidamente a que se libere `Lock B`, mientras que el Hilo 2 esperará a que se libere `Lock A`.
-
-#### Estrategias de Prevención
-La regla de oro para prevenir *deadlocks* es **imponer un ordenamiento global e invariable en la adquisición de locks**. Todos los componentes del sistema deben adquirir los recursos siguiendo siempre la misma jerarquía (por ejemplo, adquirir siempre `Lock A` antes que `Lock B`).
-
----
-
-## 2. Arquitectura de Sistemas de Archivos: Principios y Decisiones de Diseño de Unix
+## 1. Arquitectura de Sistemas de Archivos: Principios y Decisiones de Diseño de Unix
 
 Un **Sistema de Archivos** (*File System*) es una abstracción fundamental del sistema operativo que organiza y provee **datos persistentes dotados de un nombre legible**. Los datos persistentes son aquellos que sobreviven a la finalización de los procesos y al apagado o corte de energía de la computadora.
 
@@ -196,7 +18,7 @@ El sistema de archivos de Unix introdujo un conjunto de decisiones arquitectóni
 
 ---
 
-## 3. Anatomía Interna de un Archivo: Metadatos y Datos
+## 2. Anatomía Interna de un Archivo: Metadatos y Datos
 
 Un archivo se compone internamente de dos elementos claramente diferenciados por el sistema operativo:
 
@@ -233,7 +55,7 @@ Cambio: 2026-01-13 20:48:39.760786398 -0300
 
 ---
 
-## 4. El Inodo (Index Node): Representación del Archivo en Disco
+## 3. El Inodo (Index Node): Representación del Archivo en Disco
 
 Un **Inodo** (*Index Node*) es la estructura de datos fundamental que representa un archivo individual en el sistema de archivos.
 
@@ -274,7 +96,7 @@ En Linux, el tipo de archivo se define en los bits de modo del inodo:
 
 ---
 
-## 5. Directorios y Dentries (Directory Entries)
+## 4. Directorios y Dentries (Directory Entries)
 
 Dado que un inodo no almacena el nombre de un archivo, ¿dónde se guardan los nombres legibles y cómo se implementa la jerarquía de directorios?
 
@@ -333,7 +155,7 @@ No existe un "nombre original" primario frente a un "alias": todos los dentries 
 
 ---
 
-## 6. Integración con Procesos: La Tabla de Archivos Abiertos (Open File Table)
+## 5. Integración con Procesos: La Tabla de Archivos Abiertos (Open File Table)
 
 Para conectar el sistema de archivos persistente con los procesos dinámicos en ejecución, el kernel de Unix implementa una arquitectura de resolución de tres niveles:
 
@@ -378,7 +200,7 @@ La separación entre la tabla de descriptores del proceso y la tabla de archivos
 
 ---
 
-## 7. Virtual File System (VFS): Capa de Abstracción y Polimorfismo en C
+## 6. Virtual File System (VFS): Capa de Abstracción y Polimorfismo en C
 
 El **Virtual File System (VFS)** es el subsistema del kernel de Linux que proporciona una capa de abstracción sobre los sistemas de archivos físicos o virtuales concretos (Ext4, FAT32, NTFS, NFS, procfs).
 
@@ -437,7 +259,7 @@ Invocando de forma totalmente polimórfica la función correcta del sistema de a
 
 ---
 
-## 8. Tratamiento de Dispositivos como Archivos (`/dev`)
+## 7. Tratamiento de Dispositivos como Archivos (`/dev`)
 
 Fiel al principio de Unix "Todo es un archivo", los dispositivos de entrada/salida físicos y virtuales se exponen a los programas como archivos especiales ubicados convencionalmente dentro del directorio `/dev`.
 
