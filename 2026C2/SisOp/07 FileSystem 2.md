@@ -267,15 +267,20 @@ Al ejecutar `ln /dir/x /dir/h`, se creó un nuevo dentry `"h"` en el directorio 
 **Secuencia de accesos a disco:**
 
 *Fase A: Resolución del Enlace Simbólico (`/dir/y`)*
-1. Lee **Inodo `/`** $ightarrow$ 2. Lee **Bloque datos `/`** (obtiene inodo `/dir`).
-3. Lee **Inodo `/dir`** $ightarrow$ 4. Lee **Bloque datos `/dir`** (obtiene inodo de `/dir/y`).
+1. Lee **Inodo `/`** $
+ightarrow$ 2. Lee **Bloque datos `/`** (obtiene inodo `/dir`).
+3. Lee **Inodo `/dir`** $
+ightarrow$ 4. Lee **Bloque datos `/dir`** (obtiene inodo de `/dir/y`).
 5. Lee **Inodo `/dir/y`** (detecta tipo `S_IFLNK`).
 6. Lee **Bloque de datos de `/dir/y`** (obtiene la cadena de texto con el path destino: `"/dir/s/y"`).
 
 *Fase B: Resolución de la Ruta Destino (`/dir/s/y`)*
-7. Lee **Inodo `/`** $ightarrow$ 8. Lee **Bloque datos `/`**.
-9. Lee **Inodo `/dir`** $ightarrow$ 10. Lee **Bloque datos `/dir`**.
-11. Lee **Inodo `/dir/s`** $ightarrow$ 12. Lee **Bloque datos `/dir/s`** (obtiene inodo de `/dir/s/y`).
+7. Lee **Inodo `/`** $
+ightarrow$ 8. Lee **Bloque datos `/`**.
+9. Lee **Inodo `/dir`** $
+ightarrow$ 10. Lee **Bloque datos `/dir`**.
+11. Lee **Inodo `/dir/s`** $
+ightarrow$ 12. Lee **Bloque datos `/dir/s`** (obtiene inodo de `/dir/s/y`).
 13. Lee **Inodo `/dir/s/y`** (tipo regular).
 14. Lee **Bloque de datos de `/dir/s/y`** (contenido `'mundo'`).
 
