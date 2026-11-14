@@ -1,5 +1,6 @@
 {
   "cssTheme": "Obsidianite",
   "theme": "obsidian",
-  "accentColor": ""
+  "accentColor": "",
+  "showRibbon": true
 }
