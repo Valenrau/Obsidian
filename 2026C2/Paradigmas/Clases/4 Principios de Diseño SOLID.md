@@ -1,4 +1,4 @@
-# ¿Cómo evaluar un diseño?
+ # ¿Cómo evaluar un diseño?
 
 La presentación propone varias características para analizar la calidad de un diseño:
 
