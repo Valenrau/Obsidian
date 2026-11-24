@@ -70,11 +70,11 @@ public class PasarelaMercadoPago {
 }
 
 // Adaptador basado en Composición (Object Adapter)
-public class MercadoPagoAdapter implements ProcesadorPago {
+public class AdaptadorMercadoPago implements ProcesadorPago {
     private final PasarelaMercadoPago mercadoPago;
     private static final double TIPO_CAMBIO_USD_ARS = 1000.0;
 
-    public MercadoPagoAdapter(PasarelaMercadoPago mercadoPago) {
+    public AdaptadorMercadoPago(PasarelaMercadoPago mercadoPago) {
         this.mercadoPago = mercadoPago;
     }
 
@@ -93,7 +93,7 @@ public class MercadoPagoAdapter implements ProcesadorPago {
 public class SistemaVentas {
     public static void main(String[] args) {
         PasarelaMercadoPago servicioExterno = new PasarelaMercadoPago();
-        ProcesadorPago procesador = new MercadoPagoAdapter(servicioExterno);
+        ProcesadorPago procesador = new AdaptadorMercadoPago(servicioExterno);
         
         // El cliente opera con la interfaz conocida sin saber que por detrás se usa MercadoPago
         boolean exito = procesador.realizarPago("123456", 50.0);
@@ -138,14 +138,14 @@ Considérese el proceso de alta de usuario e inicialización de perfil en una ap
 
 ```java
 // Subsistema 1: Base de Datos
-public class BaseDeDatosService {
+public class ServicioBaseDeDatos {
     public void crearRegistroUsuario(String email, String nombre) {
         System.out.println("Guardando usuario en BD: " + email);
     }
 }
 
 // Subsistema 2: Hosting de Imágenes
-public class AlmacenamientoImagenService {
+public class ServicioAlmacenamientoImagen {
     public String subirFotoPerfil(String email, byte[] bytesImagen) {
         System.out.println("Subiendo foto de perfil a la nube para: " + email);
         return "https://cdn.app.com/avatars/" + email + ".png";
@@ -153,29 +153,29 @@ public class AlmacenamientoImagenService {
 }
 
 // Subsistema 3: Notificaciones
-public class EmailNotificationService {
+public class ServicioNotificacionEmail {
     public void enviarBienvenida(String email, String urlFoto) {
         System.out.println("Enviando mail de bienvenida a " + email + " con avatar " + urlFoto);
     }
 }
 
 // Fachada (Facade)
-public class UsuarioRegistrationFacade {
-    private final BaseDeDatosService bdService;
-    private final AlmacenamientoImagenService imagenService;
-    private final EmailNotificationService emailService;
+public class FachadaRegistroUsuario {
+    private final ServicioBaseDeDatos servicioBD;
+    private final ServicioAlmacenamientoImagen servicioImagen;
+    private final ServicioNotificacionEmail servicioEmail;
 
-    public UsuarioRegistrationFacade() {
-        this.bdService = new BaseDeDatosService();
-        this.imagenService = new AlmacenamientoImagenService();
-        this.emailService = new EmailNotificationService();
+    public FachadaRegistroUsuario() {
+        this.servicioBD = new ServicioBaseDeDatos();
+        this.servicioImagen = new ServicioAlmacenamientoImagen();
+        this.servicioEmail = new ServicioNotificacionEmail();
     }
 
     // Método simplificado de alto nivel
     public void registrarUsuarioCompleto(String nombre, String email, byte[] foto) {
-        bdService.crearRegistroUsuario(email, nombre);
-        String urlFoto = imagenService.subirFotoPerfil(email, foto);
-        emailService.enviarBienvenida(email, urlFoto);
+        servicioBD.crearRegistroUsuario(email, nombre);
+        String urlFoto = servicioImagen.subirFotoPerfil(email, foto);
+        servicioEmail.enviarBienvenida(email, urlFoto);
         System.out.println("Registro completado con éxito mediante la Fachada.");
     }
 }
@@ -183,7 +183,7 @@ public class UsuarioRegistrationFacade {
 // Cliente
 public class Aplicacion {
     public static void main(String[] args) {
-        UsuarioRegistrationFacade fachada = new UsuarioRegistrationFacade();
+        FachadaRegistroUsuario fachada = new FachadaRegistroUsuario();
         // El cliente realiza el proceso complejo con una sola línea de código
         fachada.registrarUsuarioCompleto("Carlos Gómez", "carlos@example.com", new byte[]{0, 1, 0});
     }
@@ -236,16 +236,16 @@ public interface ComponenteVisual {
 }
 
 // Componente Concreto
-public class TextView implements ComponenteVisual {
+public class VistaTexto implements ComponenteVisual {
     private final String texto;
 
-    public TextView(String texto) {
+    public VistaTexto(String texto) {
         this.texto = texto;
     }
 
     @Override
     public void dibujar() {
-        System.out.println("Renderizando texto: "" + texto + """);
+        System.out.println("Renderizando texto: \"" + texto + "\"");
     }
 }
 
@@ -265,10 +265,10 @@ public abstract class DecoradorVisual implements ComponenteVisual {
 }
 
 // Decorador Concreto 1: Borde
-public class BorderDecorator extends DecoradorVisual {
+public class DecoradorBorde extends DecoradorVisual {
     private final String colorBorde;
 
-    public BorderDecorator(ComponenteVisual componente, String colorBorde) {
+    public DecoradorBorde(ComponenteVisual componente, String colorBorde) {
         super(componente);
         this.colorBorde = colorBorde;
     }
@@ -285,9 +285,9 @@ public class BorderDecorator extends DecoradorVisual {
 }
 
 // Decorador Concreto 2: Scrollbar
-public class ScrollDecorator extends DecoradorVisual {
+public class DecoradorDesplazamiento extends DecoradorVisual {
 
-    public ScrollDecorator(ComponenteVisual componente) {
+    public DecoradorDesplazamiento(ComponenteVisual componente) {
         super(componente);
     }
 
@@ -303,18 +303,18 @@ public class ScrollDecorator extends DecoradorVisual {
 }
 
 // Cliente
-public class DemostradorDecorator {
+public class DemostradorDecorador {
     public static void main(String[] args) {
         // 1. Texto simple
-        ComponenteVisual textoSimple = new TextView("Hola Mundo");
+        ComponenteVisual textoSimple = new VistaTexto("Hola Mundo");
         
         // 2. Texto decorado dinámicamente con Borde y Scroll
-        ComponenteVisual textoDecorado = new ScrollDecorator(
-                                            new BorderDecorator(textoSimple, "Rojo")
+        ComponenteVisual textoDecorado = new DecoradorDesplazamiento(
+                                            new DecoradorBorde(textoSimple, "Rojo")
                                          );
 
         System.out.println("--- Dibujando componente decorado ---");
-        // Se ejecuta la cadena: ScrollDecorator -> BorderDecorator -> TextView
+        // Se ejecuta la cadena: DecoradorDesplazamiento -> DecoradorBorde -> VistaTexto
         textoDecorado.dibujar();
     }
 }
@@ -405,21 +405,21 @@ public class GraficoCompuesto implements Grafico {
 public class EditorGrafico {
     public static void main(String[] args) {
         // Hojas simples
-        Grafico l1 = new Linea();
-        Grafico r1 = new Rectangulo();
+        Grafico linea1 = new Linea();
+        Grafico rectangulo1 = new Rectangulo();
 
         // Primer nivel de composición
         GraficoCompuesto grupo1 = new GraficoCompuesto();
-        grupo1.agregar(l1);
-        grupo1.agregar(r1);
+        grupo1.agregar(linea1);
+        grupo1.agregar(rectangulo1);
 
         // Segundo nivel de composición (Jerarquía arborescente)
-        GraficoCompuesto canvasRaiz = new GraficoCompuesto();
-        canvasRaiz.agregar(grupo1);
-        canvasRaiz.agregar(new Linea());
+        GraficoCompuesto lienzoRaiz = new GraficoCompuesto();
+        lienzoRaiz.agregar(grupo1);
+        lienzoRaiz.agregar(new Linea());
 
         // El cliente dibuja todo el árbol unificadamente
-        canvasRaiz.dibujar();
+        lienzoRaiz.dibujar();
     }
 }
 ```
@@ -464,30 +464,30 @@ import java.util.Map;
 
 // Interfaz del Servicio
 public interface ServicioConsultas {
-    String consultarDatos(String usuario, String query);
+    String consultarDatos(String usuario, String consulta);
 }
 
 // Servicio Real (Objeto protegido costoso)
 public class ServicioBaseDatosReal implements ServicioConsultas {
     @Override
-    public String consultarDatos(String usuario, String query) {
-        System.out.println("Ejecutando SQL costoso en la BD para la consulta: " + query);
-        return "Resultado de [" + query + "]";
+    public String consultarDatos(String usuario, String consulta) {
+        System.out.println("Ejecutando SQL costoso en la BD para la consulta: " + consulta);
+        return "Resultado de [" + consulta + "]";
     }
 }
 
 // Proxy de Protección y Caché
-public class ServicioConsultasProxy implements ServicioConsultas {
+public class ProxyServicioConsultas implements ServicioConsultas {
     private final ServicioBaseDatosReal servicioReal;
     private final Map<String, String> cacheResultados;
 
-    public ServicioConsultasProxy() {
+    public ProxyServicioConsultas() {
         this.servicioReal = new ServicioBaseDatosReal();
         this.cacheResultados = new HashMap<>();
     }
 
     @Override
-    public String consultarDatos(String usuario, String query) {
+    public String consultarDatos(String usuario, String consulta) {
         // 1. Control de Seguridad (Protection Proxy)
         if (!esUsuarioAutorizado(usuario)) {
             System.out.println("ACCESO DENEGADO: El usuario " + usuario + " no tiene permisos.");
@@ -495,14 +495,14 @@ public class ServicioConsultasProxy implements ServicioConsultas {
         }
 
         // 2. Control de Caché (Caching Proxy)
-        if (cacheResultados.containsKey(query)) {
-            System.out.println("Retornando resultado desde la CACHÉ para: " + query);
-            return cacheResultados.get(query);
+        if (cacheResultados.containsKey(consulta)) {
+            System.out.println("Retornando resultado desde la CACHÉ para: " + consulta);
+            return cacheResultados.get(consulta);
         }
 
         // 3. Delegación al Servicio Real si supera los controles
-        String resultado = servicioReal.consultarDatos(usuario, query);
-        cacheResultados.put(query, resultado);
+        String resultado = servicioReal.consultarDatos(usuario, consulta);
+        cacheResultados.put(consulta, resultado);
         return resultado;
     }
 
@@ -514,7 +514,7 @@ public class ServicioConsultasProxy implements ServicioConsultas {
 // Cliente
 public class ConsolaSistema {
     public static void main(String[] args) {
-        ServicioConsultas servicio = new ServicioConsultasProxy();
+        ServicioConsultas servicio = new ProxyServicioConsultas();
 
         // Intento 1: Usuario no autorizado
         servicio.consultarDatos("invitado", "SELECT * FROM ventas");

@@ -79,70 +79,70 @@ public class PizzaStore {
 ```java
 // Interfaz Producto
 public interface Pizza {
-    void prepare();
-    void bake();
-    void cut();
-    void box();
+    void preparar();
+    void hornear();
+    void cortar();
+    void empacar();
 }
 
 // Productos Concretos
-public class NYStyleCheesePizza implements Pizza {
+public class PizzaQuesoEstiloNY implements Pizza {
     @Override
-    public void prepare() { System.out.println("Preparando pizza estilo Nueva York (masa fina)..."); }
+    public void preparar() { System.out.println("Preparando pizza estilo Nueva York (masa fina)..."); }
     @Override
-    public void bake() { System.out.println("Horneando a 350°C..."); }
+    public void hornear() { System.out.println("Horneando a 350°C..."); }
     @Override
-    public void cut() { System.out.println("Cortando en rebanadas triangulares..."); }
+    public void cortar() { System.out.println("Cortando en rebanadas triangulares..."); }
     @Override
-    public void box() { System.out.println("Colocando en caja de la franquicia NY..."); }
+    public void empacar() { System.out.println("Colocando en caja de la franquicia NY..."); }
 }
 
-public class ChicagoStyleCheesePizza implements Pizza {
+public class PizzaQuesoEstiloChicago implements Pizza {
     @Override
-    public void prepare() { System.out.println("Preparando pizza estilo Chicago (masa gruesa)..."); }
+    public void preparar() { System.out.println("Preparando pizza estilo Chicago (masa gruesa)..."); }
     @Override
-    public void bake() { System.out.println("Horneando a 400°C..."); }
+    public void hornear() { System.out.println("Horneando a 400°C..."); }
     @Override
-    public void cut() { System.out.println("Cortando en porciones cuadradas..."); }
+    public void cortar() { System.out.println("Cortando en porciones cuadradas..."); }
     @Override
-    public void box() { System.out.println("Colocando en caja profunda de Chicago..."); }
+    public void empacar() { System.out.println("Colocando en caja profunda de Chicago..."); }
 }
 
 // Creador Abstracto
-public abstract class PizzaStore {
+public abstract class TiendaPizza {
 
-    public Pizza orderPizza(String type) {
+    public Pizza ordenarPizza(String tipo) {
         // Se llama al método fábrica abstracto
-        Pizza pizza = createPizza(type);
+        Pizza pizza = crearPizza(tipo);
 
-        pizza.prepare();
-        pizza.bake();
-        pizza.cut();
-        pizza.box();
+        pizza.preparar();
+        pizza.hornear();
+        pizza.cortar();
+        pizza.empacar();
 
         return pizza;
     }
 
     // Factory Method
-    protected abstract Pizza createPizza(String type);
+    protected abstract Pizza crearPizza(String tipo);
 }
 
 // Creadores Concretos
-public class NYPizzaStore extends PizzaStore {
+public class TiendaPizzaNY extends TiendaPizza {
     @Override
-    protected Pizza createPizza(String type) {
-        if (type.equals("cheese")) {
-            return new NYStyleCheesePizza();
+    protected Pizza crearPizza(String tipo) {
+        if (tipo.equals("queso")) {
+            return new PizzaQuesoEstiloNY();
         }
         return null;
     }
 }
 
-public class ChicagoPizzaStore extends PizzaStore {
+public class TiendaPizzaChicago extends TiendaPizza {
     @Override
-    protected Pizza createPizza(String type) {
-        if (type.equals("cheese")) {
-            return new ChicagoStyleCheesePizza();
+    protected Pizza crearPizza(String tipo) {
+        if (tipo.equals("queso")) {
+            return new PizzaQuesoEstiloChicago();
         }
         return null;
     }
@@ -182,84 +182,84 @@ El dueño de la pizzería interactúa con una abstracción llamada "Proveedor de
 
 ```java
 // Productos Abstractos
-public interface Dough { void displayDough(); }
-public interface Cheese { void displayCheese(); }
-public interface Sauce { void displaySauce(); }
+public interface Masa { void mostrarMasa(); }
+public interface Queso { void mostrarQueso(); }
+public interface Salsa { void mostrarSalsa(); }
 
 // Productos Concretos - Familia Gourmet / NY
-public class ThinCrustDough implements Dough {
+public class MasaFina implements Masa {
     @Override
-    public void displayDough() { System.out.println("Masa fina crujiente"); }
+    public void mostrarMasa() { System.out.println("Masa fina crujiente"); }
 }
 
-public class ReggianoCheese implements Cheese {
+public class QuesoReggiano implements Queso {
     @Override
-    public void displayCheese() { System.out.println("Queso Reggiano rallado"); }
+    public void mostrarQueso() { System.out.println("Queso Reggiano rallado"); }
 }
 
-public class MarinaraSauce implements Sauce {
+public class SalsaMarinara implements Salsa {
     @Override
-    public void displaySauce() { System.out.println("Salsa Marinara fresca"); }
+    public void mostrarSalsa() { System.out.println("Salsa Marinara fresca"); }
 }
 
 // Productos Concretos - Familia Barata / Chicago
-public class ThickCrustDough implements Dough {
+public class MasaGruesa implements Masa {
     @Override
-    public void displayDough() { System.out.println("Masa gruesa al molde"); }
+    public void mostrarMasa() { System.out.println("Masa gruesa al molde"); }
 }
 
-public class MozzarellaCheese implements Cheese {
+public class QuesoMozzarella implements Queso {
     @Override
-    public void displayCheese() { System.out.println("Queso Mozzarella abundante"); }
+    public void mostrarQueso() { System.out.println("Queso Mozzarella abundante"); }
 }
 
-public class PlumTomatoSauce implements Sauce {
+public class SalsaTomatePlum implements Salsa {
     @Override
-    public void displaySauce() { System.out.println("Salsa de tomate entero Plum"); }
+    public void mostrarSalsa() { System.out.println("Salsa de tomate entero Plum"); }
 }
 
 // Fábrica Abstracta
-public interface PizzaIngredientFactory {
-    Dough createDough();
-    Cheese createCheese();
-    Sauce createSauce();
+public interface FabricaIngredientesPizza {
+    Masa crearMasa();
+    Queso crearQueso();
+    Salsa crearSalsa();
 }
 
 // Fábricas Concretas
-public class NYPizzaIngredientFactory implements PizzaIngredientFactory {
+public class FabricaIngredientesPizzaNY implements FabricaIngredientesPizza {
     @Override
-    public Dough createDough() { return new ThinCrustDough(); }
+    public Masa crearMasa() { return new MasaFina(); }
     @Override
-    public Cheese createCheese() { return new ReggianoCheese(); }
+    public Queso crearQueso() { return new QuesoReggiano(); }
     @Override
-    public Sauce createSauce() { return new MarinaraSauce(); }
+    public Salsa crearSalsa() { return new SalsaMarinara(); }
 }
 
-public class ChicagoPizzaIngredientFactory implements PizzaIngredientFactory {
+public class FabricaIngredientesPizzaChicago implements FabricaIngredientesPizza {
     @Override
-    public Dough createDough() { return new ThickCrustDough(); }
+    public Masa crearMasa() { return new MasaGruesa(); }
     @Override
-    public Cheese createCheese() { return new MozzarellaCheese(); }
+    public Queso crearQueso() { return new QuesoMozzarella(); }
     @Override
-    public Sauce createSauce() { return new PlumTomatoSauce(); }
+    public Salsa crearSalsa() { return new SalsaTomatePlum(); }
 }
 
 // Cliente que consume la fábrica
-public class ClientStore {
-    private final PizzaIngredientFactory ingredientFactory;
+public class TiendaCliente {
+    private final FabricaIngredientesPizza fabricaIngredientes;
 
-    public ClientStore(PizzaIngredientFactory factory) {
-        this.ingredientFactory = factory;
+    public TiendaCliente(FabricaIngredientesPizza fabrica) {
+        this.fabricaIngredientes = fabrica;
     }
 
-    public void makePizza() {
-        Dough dough = ingredientFactory.createDough();
-        Cheese cheese = ingredientFactory.createCheese();
-        Sauce sauce = ingredientFactory.createSauce();
+    public void hacerPizza() {
+        Masa masa = fabricaIngredientes.crearMasa();
+        Queso queso = fabricaIngredientes.crearQueso();
+        Salsa salsa = fabricaIngredientes.crearSalsa();
 
-        dough.displayDough();
-        cheese.displayCheese();
-        sauce.displaySauce();
+        masa.mostrarMasa();
+        queso.mostrarQueso();
+        salsa.mostrarSalsa();
     }
 }
 ```
@@ -303,93 +303,93 @@ En la construcción de una casa, no se entrega la estructura terminada de un sol
 
 ```java
 // Producto Complejo
-public class House {
-    private String walls;
-    private String roof;
-    private int windows;
-    private boolean hasGarage;
+public class Casa {
+    private String paredes;
+    private String techo;
+    private int ventanas;
+    private boolean tieneGaraje;
 
-    public void setWalls(String walls) { this.walls = walls; }
-    public void setRoof(String roof) { this.roof = roof; }
-    public void setWindows(int windows) { this.windows = windows; }
-    public void setHasGarage(boolean hasGarage) { this.hasGarage = hasGarage; }
+    public void setParedes(String paredes) { this.paredes = paredes; }
+    public void setTecho(String techo) { this.techo = techo; }
+    public void setVentanas(int ventanas) { this.ventanas = ventanas; }
+    public void setTieneGaraje(boolean tieneGaraje) { this.tieneGaraje = tieneGaraje; }
 
     @Override
     public String toString() {
-        return "Casa [Paredes: " + walls + ", Techo: " + roof + 
-               ", Ventanas: " + windows + ", Garaje: " + hasGarage + "]";
+        return "Casa [Paredes: " + paredes + ", Techo: " + techo + 
+               ", Ventanas: " + ventanas + ", Garaje: " + tieneGaraje + "]";
     }
 }
 
 // Interfaz Builder
-public interface HouseBuilder {
-    void reset();
-    HouseBuilder buildWalls();
-    HouseBuilder buildRoof();
-    HouseBuilder buildWindows(int count);
-    HouseBuilder buildGarage();
-    House getResult();
+public interface ConstructorCasa {
+    void reiniciar();
+    ConstructorCasa construirParedes();
+    ConstructorCasa construirTecho();
+    ConstructorCasa construirVentanas(int cantidad);
+    ConstructorCasa construirGaraje();
+    Casa obtenerResultado();
 }
 
 // Builder Concreto
-public class ConcreteHouseBuilder implements HouseBuilder {
-    private House house;
+public class ConstructorCasaConcreta implements ConstructorCasa {
+    private Casa casa;
 
-    public ConcreteHouseBuilder() {
-        this.reset();
+    public ConstructorCasaConcreta() {
+        this.reiniciar();
     }
 
     @Override
-    public void reset() {
-        this.house = new House();
+    public void reiniciar() {
+        this.casa = new Casa();
     }
 
     @Override
-    public HouseBuilder buildWalls() {
-        house.setWalls("Paredes de hormigón");
+    public ConstructorCasa construirParedes() {
+        casa.setParedes("Paredes de hormigón");
         return this;
     }
 
     @Override
-    public HouseBuilder buildRoof() {
-        house.setRoof("Techo teja española");
+    public ConstructorCasa construirTecho() {
+        casa.setTecho("Techo teja española");
         return this;
     }
 
     @Override
-    public HouseBuilder buildWindows(int count) {
-        house.setWindows(count);
+    public ConstructorCasa construirVentanas(int cantidad) {
+        casa.setVentanas(cantidad);
         return this;
     }
 
     @Override
-    public HouseBuilder buildGarage() {
-        house.setHasGarage(true);
+    public ConstructorCasa construirGaraje() {
+        casa.setTieneGaraje(true);
         return this;
     }
 
     @Override
-    public House getResult() {
-        House product = this.house;
-        this.reset(); // Listo para construir otra casa
-        return product;
+    public Casa obtenerResultado() {
+        Casa producto = this.casa;
+        this.reiniciar(); // Listo para construir otra casa
+        return producto;
     }
 }
 
 // Director (Opcional)
-public class CivilEngineerDirector {
-    private HouseBuilder builder;
+public class DirectorIngenieroCivil {
+    private ConstructorCasa constructor;
 
-    public CivilEngineerDirector(HouseBuilder builder) {
-        this.builder = builder;
+    public DirectorIngenieroCivil(ConstructorCasa constructor) {
+        this.constructor = constructor;
     }
 
-    public House constructLuxuryHouse() {
-        return builder.buildWalls()
-                      .buildRoof()
-                      .buildWindows(6)
-                      .buildGarage()
-                      .getResult();
+    public Casa construirCasaLujo() {
+        return constructor.construirParedes()
+                          .construirTecho()
+                          .construirVentanas(6)
+                          .construirGaraje()
+                          .obtenerResultado();
     }
 }
 ```
@@ -429,42 +429,42 @@ Para coordinar la comunicación, existe una regla estricta: hay un único micró
 ### Ejemplo Práctico y Técnico en Java
 
 ```java
-public class RateLimitedApiClient {
+public class ClienteApiLimitado {
     // Atributo estático privado que almacena la única instancia
-    private static RateLimitedApiClient instance;
+    private static ClienteApiLimitado instancia;
 
-    private int requestCount;
-    private final int MAX_REQUESTS = 100;
+    private int contadorPeticiones;
+    private final int MAX_PETICIONES = 100;
 
     // Constructor PRIVADO para evitar instanciación externa
-    private RateLimitedApiClient() {
-        this.requestCount = 0;
+    private ClienteApiLimitado() {
+        this.contadorPeticiones = 0;
     }
 
     // Método estático de acceso global (con thread-safety básico)
-    public static synchronized RateLimitedApiClient getInstance() {
-        if (instance == null) {
-            instance = new RateLimitedApiClient();
+    public static synchronized ClienteApiLimitado obtenerInstancia() {
+        if (instancia == null) {
+            instancia = new ClienteApiLimitado();
         }
-        return instance;
+        return instancia;
     }
 
-    public void makeRequest(String endpoint) {
-        if (requestCount < MAX_REQUESTS) {
-            requestCount++;
-            System.out.println("Petición enviada a " + endpoint + ". Peticiones realizadas: " + requestCount);
+    public void realizarPeticion(String endpoint) {
+        if (contadorPeticiones < MAX_PETICIONES) {
+            contadorPeticiones++;
+            System.out.println("Petición enviada a " + endpoint + ". Peticiones realizadas: " + contadorPeticiones);
         } else {
             System.err.println("Límite de peticiones alcanzado (Rate limit de 100 excedido).");
         }
     }
 
-    public int getRequestCount() {
-        return requestCount;
+    public int getContadorPeticiones() {
+        return contadorPeticiones;
     }
 
     // Método opcional para reiniciar estado (útil para pruebas)
-    public static void resetInstance() {
-        instance = null;
+    public static void reiniciarInstancia() {
+        instancia = null;
     }
 }
 ```
